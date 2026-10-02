@@ -46,7 +46,12 @@
       "type": "machine",
       "durationSec": 8,
       "title": "The programmable drum machine",
-      "steps": ["Water turns the gears", "Pegs ride a rotating drum", "Each peg trips a striker", "Move the pegs → new rhythm"],
+      "steps": [
+        "Water turns the gears",
+        "Pegs ride a rotating drum",
+        "Each peg trips a striker",
+        "Move the pegs → new rhythm"
+      ],
       "narration": "One was a band of musical automata. Pegs on a rotating drum set the beat. Move the pegs, change the rhythm."
     },
     {
@@ -54,9 +59,21 @@
       "durationSec": 6,
       "title": "Then → Now",
       "items": [
-        {"icon": "engine", "then": "Crankshaft & camshaft", "now": "Car engines"},
-        {"icon": "robot", "then": "Programmable automata", "now": "Robots"},
-        {"icon": "clock", "then": "Elephant water clock", "now": "Timekeeping"}
+        {
+          "icon": "engine",
+          "then": "Crankshaft & camshaft",
+          "now": "Car engines"
+        },
+        {
+          "icon": "robot",
+          "then": "Programmable automata",
+          "now": "Robots"
+        },
+        {
+          "icon": "clock",
+          "then": "Elephant water clock",
+          "now": "Timekeeping"
+        }
       ],
       "narration": "The crankshaft and camshaft he described still turn inside engines today."
     },
@@ -68,5 +85,14 @@
       "cta": "Follow for more forgotten innovators",
       "narration": "Al-Jazari. Follow for more forgotten innovators."
     }
-  ]
+  ],
+  "post": {
+    "content": "In 1206, an engineer described a machine you could program. Meet Al-Jazari, chief engineer at the Artuqid court in Upper Mesopotamia. 🔧\n\n#History #Innovation #Engineering #Robotics #AlJazari #ForgottenInnovators #TechHistory #Inventions",
+    "account_ids": [
+      7748,
+      7752,
+      7908
+    ],
+    "publish_now": true
+  }
 }
