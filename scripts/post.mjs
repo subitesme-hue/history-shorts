@@ -3,15 +3,15 @@
 // 2) PUT raw bytes to upload_url (Content-Type: video/mp4)
 // 3) POST {base}/media/{media_id}/complete
 // 4) POST {base}/posts {media_ids, account_ids, content, platform_content, publish_now}
-// PE_BASE_URL = the part BEFORE "/media/upload" in your working n8n "PE Upload" node URL (ends in /api/v1).
+// Base URL from PostEverywhere docs (posteverywhere.ai/docs): https://app.posteverywhere.ai/api/v1 (override with PE_BASE_URL if it ever changes).
 
 import fs from 'node:fs';
 
 const props = JSON.parse(fs.readFileSync(process.argv[2] ?? 'props.json', 'utf8'));
-const BASE = process.env.PE_BASE_URL?.replace(/\/$/, '');
+const BASE = (process.env.PE_BASE_URL || 'https://app.posteverywhere.ai/api/v1').replace(/\/$/, '');
 const KEY = process.env.PE_API_KEY;
 if (!props.post) { console.log('No "post" block in props -> skipping posting.'); process.exit(0); }
-if (!BASE || !KEY) throw new Error('PE_BASE_URL and PE_API_KEY secrets are required to post.');
+if (!KEY) throw new Error('Add the PE_API_KEY secret in GitHub (Settings → Secrets and variables → Actions) to post.');
 
 const auth = {Authorization: `Bearer ${KEY}`};
 const bytes = fs.readFileSync('out/video.mp4');

@@ -31,7 +31,7 @@ How it works:
 
 14. Repo → **Settings → Secrets and variables → Actions**.
 15. **Secrets** tab → **New repository secret**: Name `PE_API_KEY`, value your `pe_live_...` key.
-16. **Variables** tab → **New repository variable**: Name `PE_BASE_URL`. Value: open your working n8n "PE Upload" node, copy its URL, and keep everything **before** `/media/upload` (it ends in `/api/v1`).
+16. (Nothing else needed — the PostEverywhere address `https://app.posteverywhere.ai/api/v1` is built in.)
 17. Test posting: run the workflow with `post` = `true` (sample Al-Jazari video). Check Facebook, Instagram and TikTok. If the post step fails, send me the red step's log.
 
 ## Part E — GitHub token for n8n
