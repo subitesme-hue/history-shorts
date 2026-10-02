@@ -8,9 +8,12 @@ whoosh SFX and progress bar. 1080×1920, 30 fps.
 - `props.json` — the content of one short (sample: Al-Jazari). The n8n Brain produces this.
 - `BRAIN_PROMPT.md` — system prompt + exact JSON shape for the Brain node.
 - `src/` — the template (scenes in `src/scenes/Scenes.tsx`, captions in `src/components/Captions.tsx`).
-- `scripts/prepare.mjs` — ElevenLabs voice per scene + exact word timings.
+- `scripts/voice_kokoro.py` — free Kokoro voice per scene + word timings (default).
+- `scripts/prepare.mjs` — optional ElevenLabs voice (set repo variable `VOICE_ENGINE` = `elevenlabs`).
+- `n8n/history-shorts-n8n.json` — import into n8n.
+- `SETUP.md` — full step-by-step setup.
 - `scripts/post.mjs` — posts the MP4 via PostEverywhere (same 4 calls as your n8n chain).
-- `.github/workflows/render.yml` — renders + posts on GitHub Actions when n8n triggers it.
+- `.github/workflows/render.yml` — voice + render + post on GitHub Actions when n8n triggers it.
 
 ## Preview locally
 1. Install Node 22.
