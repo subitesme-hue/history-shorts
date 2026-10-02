@@ -1,0 +1,72 @@
+{
+  "brand": {
+    "name": "T&I NEWS",
+    "url": "tai.news",
+    "bg": "#0A1630",
+    "accent": "#D4A63A",
+    "text": "#F4E9D0"
+  },
+  "sfx": true,
+  "scenes": [
+    {
+      "type": "hook",
+      "durationSec": 5,
+      "kicker": "800 years ago",
+      "headline": "He described a machine you could",
+      "highlight": "program.",
+      "narration": "In 1206, one engineer described a machine you could program."
+    },
+    {
+      "type": "globe",
+      "durationSec": 5.5,
+      "lat": 37.31,
+      "lon": 40.74,
+      "place": "Mardin",
+      "sub": "Artuqid court · Upper Mesopotamia",
+      "narration": "His name was Al-Jazari, chief engineer at the Artuqid court in Upper Mesopotamia."
+    },
+    {
+      "type": "counter",
+      "durationSec": 5,
+      "to": 1206,
+      "label": "The Book of Knowledge of Ingenious Mechanical Devices",
+      "sub": "Completed in 1206",
+      "narration": "That year he finished The Book of Knowledge of Ingenious Mechanical Devices."
+    },
+    {
+      "type": "iconGrid",
+      "durationSec": 4.5,
+      "count": 50,
+      "icon": "gear",
+      "value": "Clocks · pumps · automata · water-raising machines",
+      "label": "Mechanical devices",
+      "narration": "Inside: fifty ingenious mechanical devices."
+    },
+    {
+      "type": "machine",
+      "durationSec": 8,
+      "title": "The programmable drum machine",
+      "steps": ["Water turns the gears", "Pegs ride a rotating drum", "Each peg trips a striker", "Move the pegs → new rhythm"],
+      "narration": "One was a band of musical automata. Pegs on a rotating drum set the beat. Move the pegs, change the rhythm."
+    },
+    {
+      "type": "legacy",
+      "durationSec": 6,
+      "title": "Then → Now",
+      "items": [
+        {"icon": "engine", "then": "Crankshaft & camshaft", "now": "Car engines"},
+        {"icon": "robot", "then": "Programmable automata", "now": "Robots"},
+        {"icon": "clock", "then": "Elephant water clock", "now": "Timekeeping"}
+      ],
+      "narration": "The crankshaft and camshaft he described still turn inside engines today."
+    },
+    {
+      "type": "outro",
+      "durationSec": 4.5,
+      "name": "Al-Jazari",
+      "years": "1136 – 1206",
+      "cta": "Follow for more forgotten innovators",
+      "narration": "Al-Jazari. Follow for more forgotten innovators."
+    }
+  ]
+}

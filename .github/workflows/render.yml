@@ -1,0 +1,54 @@
+name: Render and post short
+
+on:
+  workflow_dispatch:
+    inputs:
+      props:
+        description: 'Full props JSON (from the n8n Brain). Leave blank to render the sample props.json'
+        required: false
+        default: ''
+      post:
+        description: 'Post to socials after rendering? (true/false)'
+        required: false
+        default: 'true'
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Write props from n8n
+        if: ${{ github.event.inputs.props != '' }}
+        env:
+          PROPS: ${{ github.event.inputs.props }}
+        run: printf '%s' "$PROPS" > props.json
+
+      - name: Voiceover + exact caption timings (ElevenLabs)
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ vars.ELEVENLABS_VOICE_ID }}
+        run: node scripts/prepare.mjs props.json
+
+      - name: Render video
+        run: npx remotion render HistoryShort out/video.mp4 --props=./props.json --concurrency=2
+
+      - name: Keep a copy (Actions → this run → Artifacts)
+        uses: actions/upload-artifact@v4
+        with:
+          name: short
+          path: out/video.mp4
+          retention-days: 7
+
+      - name: Post via PostEverywhere
+        if: ${{ github.event.inputs.post != 'false' }}
+        env:
+          PE_BASE_URL: ${{ vars.PE_BASE_URL }}
+          PE_API_KEY: ${{ secrets.PE_API_KEY }}
+        run: node scripts/post.mjs props.json
