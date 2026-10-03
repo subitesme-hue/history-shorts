@@ -12,12 +12,40 @@ const row = $('Pick Innovator').first().json;
 const ALIAS = { hook:'hook', globe:'globe', map:'globe', location:'globe', counter:'counter', year:'counter',
   icongrid:'iconGrid', grid:'iconGrid', machine:'machine', mechanism:'machine', diagram:'machine',
   legacy:'legacy', thennow:'legacy', outro:'outro', ending:'outro', closing:'outro' };
-const scenesIn = Array.isArray(p.scenes) ? p.scenes : (Array.isArray(p.video?.scenes) ? p.video.scenes : []);
-const receivedTypes = scenesIn.map(s => s && s.type);
-let scenes = scenesIn
+const scenesRaw = Array.isArray(p.scenes) ? p.scenes : (Array.isArray(p.video?.scenes) ? p.video.scenes : []);
+
+// Work out each scene's type: from a type-like field if present, otherwise from the fields the scene contains.
+const norm = (t) => ALIAS[String(t || '').toLowerCase().replace(/[^a-z]/g, '')];
+const inferType = (s) => {
+  const named = norm(s.type ?? s.scene_type ?? s.sceneType ?? s.kind ?? s.template ?? s.layout ?? s.scene);
+  if (named) return named;
+  if ('headline' in s || 'highlight' in s || 'kicker' in s) return 'hook';
+  if ('lat' in s || 'lon' in s || 'latitude' in s || 'place' in s) return 'globe';
+  if (Array.isArray(s.steps)) return 'machine';
+  if (Array.isArray(s.items)) return 'legacy';
+  if ('cta' in s || 'years' in s) return 'outro';
+  if ('count' in s && 'icon' in s) return 'iconGrid';
+  if ('to' in s) return 'counter';
+  return undefined;
+};
+const unwrap = (s) => {
+  // Handles scenes shaped like {"hook": {...}}
+  const keys = s && typeof s === 'object' ? Object.keys(s) : [];
+  if (keys.length === 1 && norm(keys[0]) && typeof s[keys[0]] === 'object') return { ...s[keys[0]], type: keys[0] };
+  return s;
+};
+const receivedTypes = scenesRaw.map(s => (s && typeof s === 'object') ? (s.type ?? Object.keys(s).join('+')) : typeof s);
+let scenes = scenesRaw
   .filter(s => s && typeof s === 'object')
-  .map(s => ({ ...s, type: ALIAS[String(s.type || '').toLowerCase().replace(/[^a-z]/g, '')] }))
-  .filter(s => TYPES.includes(s.type) && s.narration);
+  .map(unwrap)
+  .map(s => {
+    const t = inferType(s);
+    const out = { ...s, type: t };
+    if (t === 'globe') { out.lat = Number(s.lat ?? s.latitude); out.lon = Number(s.lon ?? s.lng ?? s.longitude); }
+    if (!out.narration) out.narration = s.voiceover ?? s.vo ?? s.text ?? s.script;
+    return out;
+  })
+  .filter(s => TYPES.includes(s.type) && s.narration && !(s.type === 'globe' && (isNaN(s.lat) || isNaN(s.lon))));
 
 // Repair order: exactly one hook first, exactly one outro last.
 let hookScene = scenes.find(s => s.type === 'hook');
@@ -32,7 +60,7 @@ if (!hookScene) {
 if (!outroScene) outroScene = { type: 'outro', durationSec: 4.5, name: row.name, years: row.era || '',
                       cta: 'Follow for more forgotten innovators', narration: row.name + '. Follow for more forgotten innovators.' };
 scenes = [hookScene, ...scenes, outroScene];
-if (scenes.length < 4) throw new Error('Brain returned too few usable scenes. Types received: ' + JSON.stringify(receivedTypes));
+if (scenes.length < 4) throw new Error('Brain returned too few usable scenes. Scene keys received: ' + JSON.stringify(receivedTypes));
 
 for (const s of scenes) {
   s.durationSec = Number(s.durationSec) || 5;
