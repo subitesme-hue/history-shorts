@@ -214,26 +214,17 @@ export const IconGrid: React.FC<{s: IconGridScene; brand: Brand}> = ({s, brand})
   );
 };
 
-/* ---------------- MACHINE (programmable drum) ---------------- */
+/* ---------------- MACHINE ("how it works", works for any invention) ---------------- */
 export const Machine: React.FC<{s: MachineScene; brand: Brand}> = ({s, brand}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
-  const speed = 3;
-  const half = Math.floor(s.durationSec * fps * 0.55);
-  // Pegs pattern changes halfway: "move the pegs, change the rhythm".
-  const patternA = [0, 2, 4, 6];
-  const patternB = [0, 1, 3, 4, 5, 7];
-  const pattern = frame < half ? patternA : patternB;
-  const spacing = 110;
-  const drumY = 760;
-  const strikerX = 540;
-  const offset = (frame * speed) % (spacing * 8);
-  const pegs: number[] = [];
-  for (let rep = -1; rep < 3; rep++) pattern.forEach((p) => pegs.push(rep * spacing * 8 + p * spacing - offset + 120));
-  const hit = pegs.some((x) => Math.abs(x - strikerX) < 16);
-  const lastHit = pegs.map((x) => strikerX - x).filter((d) => d >= 0 && d < 60);
-  const lift = lastHit.length ? interpolate(Math.min(...lastHit), [0, 60], [1, 0], {extrapolateRight: 'clamp'}) : 0;
-  const swap = spring({frame: frame - half, fps, config: {damping: 10}});
+  const total = s.durationSec * fps;
+  const steps = s.steps.slice(0, 4);
+  const top = 640;
+  const gap = 150;
+  const at = (i: number) => Math.round(6 + (i / steps.length) * total * 0.8);
+  const active = steps.reduce((acc, _, i) => (frame >= at(i) ? i : acc), 0);
+  const lineP = interpolate(frame, [at(0), at(steps.length - 1) + 10], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
   const title = spring({frame, fps, config: {damping: 14}});
   return (
     <AbsoluteFill>
@@ -241,53 +232,28 @@ export const Machine: React.FC<{s: MachineScene; brand: Brand}> = ({s, brand}) =
         <Kicker text={s.title} brand={brand} />
       </div>
       <svg width={1080} height={1920} style={{position: 'absolute'}}>
-        {/* drive gears */}
-        <Gear cx={150} cy={drumY + 230} r={110} teeth={16} angle={frame * speed * 0.5} color={brand.accent} opacity={0.9} />
-        <Gear cx={150 + 110 + 72} cy={drumY + 230 - 10} r={72} teeth={10} angle={-frame * speed * 0.5 * (16 / 10) + 18} color={brand.text} opacity={0.8} />
-        {/* water stream feeding the wheel */}
-        {Array.from({length: 7}).map((_, i) => (
-          <circle key={i} cx={150 + Math.sin((frame + i * 9) / 6) * 4} cy={((frame * 9 + i * 40) % 280) + 380} r={9} fill="#5FB4FF" opacity={0.7} />
-        ))}
-        {/* drum (peg cylinder) */}
-        <rect x={60} y={drumY - 70} width={960} height={140} rx={70} fill="#13274D" stroke={brand.accent} strokeWidth={5} />
-        {Array.from({length: 14}).map((_, i) => {
-          const x = ((i * 80 - offset * 1) % 1120) + 1120;
-          return <line key={i} x1={(x % 1120) - 20} y1={drumY - 66} x2={(x % 1120) - 20} y2={drumY + 66} stroke={brand.text} strokeOpacity={0.08} strokeWidth={3} />;
-        })}
-        {pegs
-          .filter((x) => x > 80 && x < 1000)
-          .map((x, i) => (
-            <rect key={i} x={x - 16} y={drumY - 104} width={32} height={50} rx={8} fill={brand.accent} opacity={frame >= half ? interpolate(swap, [0, 1], [0.2, 1]) : 1} />
-          ))}
-        {/* striker lever */}
-        <g transform={`rotate(${-lift * 18} ${strikerX + 160} ${drumY - 150})`}>
-          <rect x={strikerX - 20} y={drumY - 168} width={200} height={26} rx={13} fill={brand.text} />
-          <circle cx={strikerX + 160} cy={drumY - 155} r={18} fill={brand.accent} />
-        </g>
-        {/* drum being hit */}
-        <g transform={`translate(${strikerX - 60} ${drumY - 340}) scale(${1 + (hit ? 0.12 : 0)})`} style={{color: brand.text}}>
-          <foreignObject width={130} height={130}>
-            <Icon name="drum" size={120} color={hit ? brand.accent : brand.text} stroke={7} />
-          </foreignObject>
-        </g>
-        {hit &&
-          Array.from({length: 6}).map((_, i) => (
-            <line key={i} x1={strikerX + Math.cos((i * Math.PI) / 3 + 0.5) * 85} y1={drumY - 280 + Math.sin((i * Math.PI) / 3 + 0.5) * 85} x2={strikerX + Math.cos((i * Math.PI) / 3 + 0.5) * 130} y2={drumY - 280 + Math.sin((i * Math.PI) / 3 + 0.5) * 130} stroke={brand.accent} strokeWidth={6} strokeLinecap="round" opacity={0.8} />
-          ))}
+        {/* meshing gears = "a mechanism at work" */}
+        <Gear cx={760} cy={420} r={120} teeth={18} angle={frame * 1.2} color={brand.accent} opacity={0.9} />
+        <Gear cx={760 - 120 - 76} cy={440} r={76} teeth={11} angle={-frame * 1.2 * (18 / 11) + 10} color={brand.text} opacity={0.75} />
+        <Gear cx={760 + 120 + 40} cy={420 - 100} r={50} teeth={8} angle={-frame * 1.2 * (18 / 8) + 5} color={brand.text} opacity={0.35} />
+        {/* flow line */}
+        <line x1={150} y1={top} x2={150} y2={top + gap * (steps.length - 1)} stroke={brand.text} strokeOpacity={0.12} strokeWidth={8} strokeLinecap="round" />
+        <line x1={150} y1={top} x2={150} y2={top + gap * (steps.length - 1) * lineP} stroke={brand.accent} strokeWidth={8} strokeLinecap="round" />
+        {/* pulse travelling down the line */}
+        <circle cx={150} cy={top + gap * (steps.length - 1) * lineP} r={14} fill={brand.accent} opacity={lineP < 1 ? 0.9 : 0} />
       </svg>
-      {/* steps */}
-      <div style={{position: 'absolute', top: drumY + 120, left: 380, right: 60, display: 'flex', flexDirection: 'column', gap: 18}}>
-        {s.steps.map((st, i) => {
-          const at = Math.round((i / s.steps.length) * s.durationSec * fps * 0.85) + 6;
-          const e = spring({frame: frame - at, fps, config: {damping: 14}});
-          return (
-            <div key={i} style={{display: 'flex', alignItems: 'center', gap: 18, opacity: e, transform: `translateX(${(1 - e) * 80}px)`}}>
-              <div style={{width: 52, height: 52, borderRadius: 26, background: brand.accent, color: brand.bg, fontFamily: SANS, fontWeight: 900, fontSize: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0}}>{i + 1}</div>
-              <div style={{fontFamily: SANS, fontWeight: 700, fontSize: 34, color: brand.text}}>{st}</div>
+      {steps.map((st, i) => {
+        const e = spring({frame: frame - at(i), fps, config: {damping: 12, stiffness: 160}});
+        const on = i === active;
+        return (
+          <div key={i} style={{position: 'absolute', left: 150 - 40, top: top + i * gap - 40, right: 70, display: 'flex', alignItems: 'center', gap: 34, opacity: e, transform: `translateX(${(1 - e) * 60}px)`}}>
+            <div style={{width: 80, height: 80, borderRadius: 40, flexShrink: 0, background: on ? brand.accent : brand.bg, border: `5px solid ${brand.accent}`, color: on ? brand.bg : brand.accent, fontFamily: SANS, fontWeight: 900, fontSize: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', transform: `scale(${on ? 1.1 : 1})`}}>
+              {i + 1}
             </div>
-          );
-        })}
-      </div>
+            <div style={{fontFamily: SANS, fontWeight: on ? 800 : 700, fontSize: on ? 46 : 40, lineHeight: 1.15, color: on ? brand.text : 'rgba(244,233,208,0.7)'}}>{st}</div>
+          </div>
+        );
+      })}
     </AbsoluteFill>
   );
 };
