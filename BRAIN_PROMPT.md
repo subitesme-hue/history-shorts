@@ -29,14 +29,15 @@ OUTPUT SHAPE
   "scenes": [ ... ],
   "post": {
     "content": "<IG/FB/TikTok caption: plain-language hook + 1 line of context + 8-12 hashtags>",
-    "platform_content": { },
-    "account_ids": [7748, 7752, 7908],
-    "publish_now": true
+    "youtube_title": "<max 90 chars, curiosity hook + name, ends with #Shorts>",
+    "youtube_description": "<2-3 plain sentences + 3-5 hashtags>",
+    "youtube_tags": ["<5-10 short tags>"],
+    "linkedin_caption": "<professional tone, 3-5 short lines: the innovation, why it still matters for business/tech today, a question to the reader, max 3 hashtags>"
   }
 }
 
 ---
 
 Notes
-- `platform_content`: use the same structure your current working n8n "PE Create Post" node sends (e.g. the X caption under 180 chars, no emojis). Add 7747 (X) to `account_ids` only once that is in place.
+- Account IDs and per-platform settings are added by the n8n Build Props node, not by the Brain: Facebook 7748, Instagram 7752, TikTok 7908, YouTube 7751, LinkedIn 9116 (X 7747 not yet).
 - `durationSec` is a fallback. When ElevenLabs is connected, `scripts/prepare.mjs` re-times every scene to the real voice length.

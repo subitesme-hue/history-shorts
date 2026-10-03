@@ -91,8 +91,30 @@
     "account_ids": [
       7748,
       7752,
-      7908
+      7908,
+      7751,
+      9116
     ],
-    "publish_now": true
+    "publish_now": true,
+    "platform_content": {
+      "youtube": {
+        "title": "He designed a programmable machine in 1206 | Al-Jazari #Shorts",
+        "description": "In 1206, Al-Jazari, chief engineer at the Artuqid court, finished a book describing 50 mechanical devices, including a programmable drum machine. #History #Engineering #Robotics",
+        "privacy": "public",
+        "made_for_kids": false,
+        "is_short": true,
+        "tags": [
+          "history",
+          "engineering",
+          "robotics",
+          "al-jazari",
+          "inventions",
+          "tech history"
+        ]
+      },
+      "linkedin": {
+        "content": "In 1206, engineer Al-Jazari described a drum machine you could reprogram by moving pegs on a rotating cylinder.\n\nThe crankshaft and camshaft he described still turn inside engines today.\n\nWhich \"modern\" idea do you think is older than we assume?\n\n#Innovation #Engineering #History"
+      }
+    }
   }
 }
