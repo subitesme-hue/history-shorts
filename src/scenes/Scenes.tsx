@@ -27,8 +27,9 @@ const useEnter = (delay = 0, damping = 14) => {
   return spring({frame: frame - delay, fps, config: {damping, stiffness: 140}});
 };
 
-const Kicker: React.FC<{text: string; brand: Brand; delay?: number}> = ({text, brand, delay = 0}) => {
-  const e = useEnter(delay);
+const Kicker: React.FC<{text: string; brand: Brand; delay?: number; instant?: boolean}> = ({text, brand, delay = 0, instant = false}) => {
+  const anim = useEnter(delay);
+  const e = instant ? 1 : anim;
   return (
     <div style={{display: 'flex', alignItems: 'center', gap: 18, opacity: e, transform: `translateY(${(1 - e) * 30}px)`}}>
       <div style={{width: interpolate(e, [0, 1], [0, 70]), height: 6, background: brand.accent, borderRadius: 3}} />
@@ -42,12 +43,8 @@ export const Hook: React.FC<{s: HookScene; brand: Brand}> = ({s, brand}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   const words = s.headline.split(' ');
-  const hl = useEnter(10 + words.length * 4);
-  const underline = interpolate(frame, [22 + words.length * 4, 40 + words.length * 4], [0, 1], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-    easing: Easing.out(Easing.cubic),
-  });
+  const hl = useEnter(0);
+  const underline = 1;
   const zoom = interpolate(frame, [0, s.durationSec * fps], [1, 1.08]);
   return (
     <AbsoluteFill>
@@ -57,10 +54,11 @@ export const Hook: React.FC<{s: HookScene; brand: Brand}> = ({s, brand}) => {
         <Gear cx={230} cy={1020} r={190} teeth={18} angle={-frame * 0.5} color={brand.text} opacity={0.05} />
       </svg>
       <AbsoluteFill style={{padding: '0 90px', justifyContent: 'center', top: -250, transform: `scale(${zoom})`}}>
-        <Kicker text={s.kicker} brand={brand} />
+        <Kicker text={s.kicker} brand={brand} instant />
         <div style={{marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: '0 26px'}}>
           {words.map((w, i) => {
-            const e = spring({frame: frame - 8 - i * 4, fps, config: {damping: 13, stiffness: 160}});
+            // Frame 0 is the thumbnail, so words are fully visible from the start and just "settle" (no fade-in).
+            const e = spring({frame: frame - i * 3, fps, config: {damping: 12, stiffness: 140}});
             return (
               <span
                 key={i}
@@ -70,8 +68,8 @@ export const Hook: React.FC<{s: HookScene; brand: Brand}> = ({s, brand}) => {
                   fontSize: 122,
                   lineHeight: 1.08,
                   color: brand.text,
-                  opacity: e,
-                  transform: `translateY(${(1 - e) * 60}px)`,
+                  opacity: 1,
+                  transform: `translateY(${(1 - e) * 14}px)`,
                   display: 'inline-block',
                 }}
               >
@@ -80,7 +78,7 @@ export const Hook: React.FC<{s: HookScene; brand: Brand}> = ({s, brand}) => {
             );
           })}
         </div>
-        <div style={{position: 'relative', alignSelf: 'flex-start', marginTop: 10, opacity: hl, transform: `scale(${interpolate(hl, [0, 1], [1.4, 1])})`, transformOrigin: 'left center'}}>
+        <div style={{position: 'relative', alignSelf: 'flex-start', marginTop: 10, opacity: 1, transform: `scale(${interpolate(hl, [0, 1], [1.12, 1])})`, transformOrigin: 'left center'}}>
           <span style={{fontFamily: SERIF, fontStyle: 'italic', fontWeight: 700, fontSize: 150, color: brand.accent}}>{s.highlight}</span>
           <div style={{position: 'absolute', left: 0, bottom: 6, height: 12, width: `${underline * 100}%`, background: brand.accent, borderRadius: 6}} />
         </div>

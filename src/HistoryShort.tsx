@@ -46,7 +46,7 @@ const ProgressBar: React.FC<{color: string}> = ({color}) => {
 
 const Bug: React.FC<{brand: ShortProps['brand']}> = ({brand}) => {
   const frame = useCurrentFrame();
-  const o = interpolate(frame, [0, 15], [0, 1], {extrapolateRight: 'clamp'});
+  const o = 1; // visible from frame 0 so the brand shows in the platform thumbnail
   return (
     <div style={{position: 'absolute', top: 70, left: 70, opacity: o, display: 'flex', alignItems: 'center', gap: 14}}>
       <div style={{width: 16, height: 16, borderRadius: 8, background: brand.accent}} />
