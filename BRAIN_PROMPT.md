@@ -32,12 +32,13 @@ OUTPUT SHAPE
     "youtube_title": "<max 90 chars, curiosity hook + name, ends with #Shorts>",
     "youtube_description": "<2-3 plain sentences + 3-5 hashtags>",
     "youtube_tags": ["<5-10 short tags>"],
-    "linkedin_caption": "<professional tone, 3-5 short lines: the innovation, why it still matters for business/tech today, a question to the reader, max 3 hashtags>"
+    "linkedin_caption": "<professional tone, 3-5 short lines: the innovation, why it still matters for business/tech today, a question to the reader, max 3 hashtags>",
+    "x_caption": "<one punchy line, max 100 characters, NO emojis, NO hashtags, NO website (the website is added automatically)>"
   }
 }
 
 ---
 
 Notes
-- Account IDs and per-platform settings are added by the n8n Build Props node, not by the Brain: Facebook 7748, Instagram 7752, TikTok 7908, YouTube 7751, LinkedIn 9116 (X 7747 not yet).
+- Account IDs and per-platform settings are added by the n8n Build Props node, not by the Brain: Facebook 7748, Instagram 7752, TikTok 7908, YouTube 7751, LinkedIn 9116. X 7747 is posted separately with the x_caption + " tai.news", always under 120 characters.
 - `durationSec` is a fallback. When ElevenLabs is connected, `scripts/prepare.mjs` re-times every scene to the real voice length.

@@ -22,26 +22,44 @@ const call = async (url, opts) => {
   return t ? JSON.parse(t) : {};
 };
 
-const up = await call(`${BASE}/media/upload`, {
-  method: 'POST',
-  headers: {...auth, 'Content-Type': 'application/json'},
-  body: JSON.stringify({filename: 'short.mp4', content_type: 'video/mp4', size: bytes.length}),
-});
-const mediaId = up.data.media_id;
-const put = await fetch(up.data.upload_url, {method: 'PUT', headers: {'Content-Type': 'video/mp4'}, body: bytes});
-if (!put.ok) throw new Error(`PUT bytes -> ${put.status} ${await put.text()}`);
-await call(`${BASE}/media/${mediaId}/complete`, {method: 'POST', headers: auth});
-await new Promise((r) => setTimeout(r, 3000)); // media reached ready in ~2s in your n8n runs
+// Upload the video and create one post. Uses only fields verified working: media_ids, account_ids, content, platform_content.
+const publish = async (accountIds, content, platformContent) => {
+  const up = await call(`${BASE}/media/upload`, {
+    method: 'POST',
+    headers: {...auth, 'Content-Type': 'application/json'},
+    body: JSON.stringify({filename: 'short.mp4', content_type: 'video/mp4', size: bytes.length}),
+  });
+  const mediaId = up.data.media_id;
+  const put = await fetch(up.data.upload_url, {method: 'PUT', headers: {'Content-Type': 'video/mp4'}, body: bytes});
+  if (!put.ok) throw new Error(`PUT bytes -> ${put.status} ${await put.text()}`);
+  await call(`${BASE}/media/${mediaId}/complete`, {method: 'POST', headers: auth});
+  await new Promise((r) => setTimeout(r, 3000)); // media reached ready in ~2s in your n8n runs
+  return call(`${BASE}/posts`, {
+    method: 'POST',
+    headers: {...auth, 'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      media_ids: [mediaId],
+      account_ids: accountIds,
+      content,
+      platform_content: platformContent ?? {},
+      publish_now: props.post.publish_now ?? true,
+    }),
+  });
+};
 
-const post = await call(`${BASE}/posts`, {
-  method: 'POST',
-  headers: {...auth, 'Content-Type': 'application/json'},
-  body: JSON.stringify({
-    media_ids: [mediaId],
-    account_ids: props.post.account_ids,
-    content: props.post.content,
-    platform_content: props.post.platform_content ?? {},
-    publish_now: props.post.publish_now ?? true,
-  }),
-});
-console.log('Posted:', JSON.stringify(post).slice(0, 500));
+let failed = false;
+if (props.post.account_ids?.length) {
+  const res = await publish(props.post.account_ids, props.post.content, props.post.platform_content);
+  console.log('Main post OK:', JSON.stringify(res).slice(0, 400));
+}
+// X gets its own post with its own short caption (kept under 120 characters, includes the website).
+if (props.post.x?.account_ids?.length && props.post.x.content) {
+  try {
+    const res = await publish(props.post.x.account_ids, props.post.x.content, {});
+    console.log('X post OK:', JSON.stringify(res).slice(0, 400));
+  } catch (e) {
+    console.error('X post FAILED (other platforms already posted):', e.message);
+    failed = true;
+  }
+}
+if (failed) process.exit(1);
