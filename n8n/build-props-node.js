@@ -38,11 +38,13 @@ const receivedTypes = scenesRaw.map(s => (s && typeof s === 'object') ? (s.type 
 let scenes = scenesRaw
   .filter(s => s && typeof s === 'object')
   .map(unwrap)
-  .map(s => {
+  .map((s, i) => {
     const t = inferType(s);
     const out = { ...s, type: t };
     if (t === 'globe') { out.lat = Number(s.lat ?? s.latitude); out.lon = Number(s.lon ?? s.lng ?? s.longitude); }
-    if (!out.narration) out.narration = s.voiceover ?? s.vo ?? s.text ?? s.script;
+    // Narration: on the scene itself, or in a top-level list/object the Brain may have used instead.
+    const topList = [p.narration, p.narrations, p.voiceover, p.script].find(Array.isArray);
+    if (!out.narration) out.narration = s.voiceover ?? s.vo ?? s.text ?? s.script ?? s.spoken ?? (topList ? (typeof topList[i] === 'string' ? topList[i] : topList[i]?.narration ?? topList[i]?.text) : undefined);
     return out;
   })
   .filter(s => TYPES.includes(s.type) && s.narration && !(s.type === 'globe' && (isNaN(s.lat) || isNaN(s.lon))));
@@ -60,7 +62,7 @@ if (!hookScene) {
 if (!outroScene) outroScene = { type: 'outro', durationSec: 4.5, name: row.name, years: row.era || '',
                       cta: 'Follow for more forgotten innovators', narration: row.name + '. Follow for more forgotten innovators.' };
 scenes = [hookScene, ...scenes, outroScene];
-if (scenes.length < 4) throw new Error('Brain returned too few usable scenes. Scene keys received: ' + JSON.stringify(receivedTypes));
+if (scenes.length < 4) throw new Error('Brain returned too few usable scenes (each needs narration). Scene keys: ' + JSON.stringify(receivedTypes) + ' | Top-level keys: ' + JSON.stringify(Object.keys(p)));
 
 for (const s of scenes) {
   s.durationSec = Number(s.durationSec) || 5;
