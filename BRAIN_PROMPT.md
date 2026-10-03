@@ -50,4 +50,5 @@ OUTPUT SHAPE
 
 Notes
 - Account IDs and per-platform settings are added by the n8n Build Props node, not by the Brain: Facebook 7748, Instagram 7752, TikTok 7908, YouTube 7751, LinkedIn 9116. X 7747 is posted separately with the x_caption + " tai.news", always under 120 characters.
+- Build Props adds "🔗 Visit tai.news for more" above the hashtags on the Facebook/Instagram/TikTok caption, the YouTube description and the LinkedIn caption.
 - `durationSec` is a fallback. When ElevenLabs is connected, `scripts/prepare.mjs` re-times every scene to the real voice length.

@@ -75,6 +75,19 @@ p.scenes = scenes;
 // Fixed brand + posting targets (never trust the model with these)
 p.brand = { name: 'T&I NEWS', url: 'tai.news', bg: '#0A1630', accent: '#D4A63A', text: '#F4E9D0' };
 p.sfx = true;
+// Adds "Visit tai.news for more" to a caption, just above the hashtags (never twice).
+function withSite(text) {
+  const cta = '🔗 Visit tai.news for more';
+  let t = String(text || '').trim();
+  if (!t || /tai\.news/i.test(t)) return t;
+  const lines = t.split('\n');
+  const tagLine = lines.findIndex(l => /^\s*#/.test(l));
+  if (tagLine === -1) return t + '\n\n' + cta;
+  const before = lines.slice(0, tagLine).join('\n').trim();
+  const after = lines.slice(tagLine).join('\n').trim();
+  return before + '\n\n' + cta + '\n\n' + after;
+}
+
 // X caption: no emojis, website added, always under 120 characters.
 function xCaption(text) {
   const site = ' tai.news';
@@ -93,20 +106,20 @@ const outro = p.scenes[p.scenes.length - 1];
 let ytTitle = (b.youtube_title || (outro.name + ': ' + p.scenes[0].headline + ' ' + p.scenes[0].highlight)).trim();
 if (ytTitle.length > 100) ytTitle = ytTitle.slice(0, 97) + '...';   // YouTube title limit is 100 characters
 p.post = {
-  content: b.content,
+  content: withSite(b.content),
   // Facebook 7748, Instagram 7752, TikTok 7908, YouTube 7751, LinkedIn 9116. X (7747) is a separate post below.
   account_ids: [7748, 7752, 7908, 7751, 9116],
   publish_now: true,
   platform_content: {
     youtube: {
       title: ytTitle,
-      description: b.youtube_description || b.content,
+      description: withSite(b.youtube_description || b.content),
       privacy: 'public',
       made_for_kids: false,
       is_short: true,
       tags: Array.isArray(b.youtube_tags) ? b.youtube_tags.slice(0, 15) : []
     },
-    linkedin: { content: b.linkedin_caption || b.content }
+    linkedin: { content: withSite(b.linkedin_caption || b.content) }
   },
   x: { account_ids: [7747], content: xCaption(b.x_caption || p.scenes[0].narration) }
 };
