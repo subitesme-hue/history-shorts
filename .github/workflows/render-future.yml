@@ -15,11 +15,17 @@ on:
         description: 'Kokoro voice (am_michael, am_fenrir, am_puck, af_heart, bm_george ...)'
         required: false
         default: 'am_michael'
+      preview:
+        description: 'Also save the video to the future-preview branch (true/false)'
+        required: false
+        default: 'false'
 
 jobs:
   render:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -88,3 +94,16 @@ jobs:
           PE_BASE_URL: ${{ vars.PE_BASE_URL }}
           PE_API_KEY: ${{ secrets.PE_API_KEY }}
         run: node scripts/post.mjs props-future.json
+
+      - name: Save preview to future-preview branch (optional)
+        if: ${{ github.event.inputs.preview == 'true' }}
+        run: |
+          cp out/video.mp4 /tmp/preview.mp4
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -q --orphan future-preview
+          git rm -rf -q --cached .
+          cp /tmp/preview.mp4 preview.mp4
+          git add -f preview.mp4
+          git commit -qm "Future Shift preview"
+          git push -f -q origin future-preview
