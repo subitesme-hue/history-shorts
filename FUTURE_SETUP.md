@@ -25,13 +25,16 @@ original background music that dips under the voice, posted to Facebook, Instagr
 5. **Render on GitHub** node → Authorization header: replace `PASTE_YOUR_GITHUB_TOKEN` (keep `Bearer `). The URL is already set to `subitesme-hue/history-shorts`.
 6. Click **Test run → Execute workflow**. A manual test renders but never posts. Expected: all nodes green, Render on GitHub
    returns empty (204). Repo → **Actions → Render and post Future Shift short** → download artifact **future-short** to watch.
-7. Happy with it → **Activate** the workflow. It runs daily at **4:00 pm Dubai** and posts to all six platforms.
+7. Happy with it → **Activate** the workflow. It runs at **1:00 pm and 7:00 pm Dubai**, posts to all six platforms,
+   makes **35 videos** (from 5 Oct 2026; #35 posts 22 Oct 1 pm) and then stops by itself.
+   Starting on a later day? Change `START_DATE` at the top of **Pick Topic** to that day so it begins at video #1.
 
 ## Changing things
-- Time: open the **Daily 4pm Dubai** node, change the hour (workflow timezone is Asia/Dubai).
+- Times: open the **Daily 1pm + 7pm Dubai** node (workflow timezone is Asia/Dubai). Keep one run before 4 pm and one after,
+  that is how Pick Topic numbers the two videos of each day.
+- More videos: add rows to `TOPICS` and raise `TOTAL` in **Pick Topic**.
 - Topics: edit the `TOPICS` list in **Pick Topic** (`[name, visual, Wikipedia title]`). Visuals: `neural` (AI), `chain` (blockchain),
   `robot` (robotics), `network` (IoT / cities / mobility), `orbit` (quantum, science, energy).
-  Or put a Google Sheets "Get row(s)" node before Pick Topic with columns `topic | visual | wiki_title | status` (first `pending` row wins).
 - Voice: `voice: 'am_michael'` at the bottom of **Build Props** (same voices as History Shorts).
 - Music loudness: `musicVolume: 0.4` in **Build Props** (0.3 quieter, 0.5 louder; it always dips under the voice).
 - New music: `python scripts/gen_music.py` (edit the chord progressions at the top), commit the mp3s.

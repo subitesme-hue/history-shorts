@@ -80,6 +80,12 @@ jobs:
       - name: Render video
         run: npx remotion render HistoryShort out/video.mp4 --props=./props.json --concurrency=2
 
+      - name: Loudness to social standard (-14 LUFS)
+        run: |
+          command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+          ffmpeg -hide_banner -loglevel error -y -i out/video.mp4 -c:v copy -af loudnorm=I=-14:TP=-1.5:LRA=11 -ar 48000 -c:a aac -b:a 192k out/video-norm.mp4
+          mv out/video-norm.mp4 out/video.mp4
+
       - name: Keep a copy (Actions → this run → Artifacts)
         uses: actions/upload-artifact@v4
         with:
