@@ -4,7 +4,7 @@ Everything here is synthesised from scratch (no samples), so the tracks are 100%
 and safe on TikTok / YouTube / Instagram / Facebook / LinkedIn / X (no Content ID claims).
 
 Each track = slow warm pad + soft felt-piano arpeggio + sub bass + airy shimmer, through a long reverb.
-Run:  python scripts/gen_music.py      -> public/music/future-1.mp3 ... future-4.mp3
+Run:  python scripts/gen_music.py      -> public/music/future-1..4.mp3 and history-1..4.mp3 (existing files are kept)
 Needs numpy, scipy and ffmpeg.
 """
 import os
@@ -44,6 +44,11 @@ TRACKS = [
     ("future-2", 4.8, [("A", "m9"), ("F", "maj7"), ("C", "add9"), ("G", "6/9")]),       # reflective
     ("future-3", 4.2, [("E", "maj9"), ("C#", "m7"), ("A", "maj9"), ("B", "sus2")]),     # wide, cinematic
     ("future-4", 5.0, [("F", "maj7"), ("D", "m9"), ("A#", "maj9"), ("C", "sus2")]),     # calm, warm
+    # Forgotten Innovators: same warmth, more reflective / timeless
+    ("history-1", 5.2, [("D", "m9"), ("A#", "maj7"), ("F", "maj9"), ("C", "6/9")]),     # wistful
+    ("history-2", 5.0, [("E", "m9"), ("C", "maj7"), ("G", "add9"), ("D", "sus2")]),     # wonder
+    ("history-3", 5.4, [("A", "m7"), ("F", "maj9"), ("D", "m9"), ("E", "sus2")]),       # ancient, cinematic
+    ("history-4", 4.8, [("G", "maj9"), ("E", "m7"), ("C", "maj9"), ("D", "sus2")]),     # hopeful legacy
 ]
 
 
@@ -184,6 +189,9 @@ def master(x):
 def main():
     os.makedirs(OUT, exist_ok=True)
     for idx, (name, bar, prog) in enumerate(TRACKS):
+        if os.path.exists(os.path.join(OUT, name + ".mp3")) and os.environ.get("FORCE") != "1":
+            print("exists, skipping", name, "(FORCE=1 to rebuild)")
+            continue
         rng = np.random.default_rng(1000 + idx)
         mix = pad(prog, bar, rng) * 0.9 + arpeggio(prog, bar, rng) + bass(prog, bar) + shimmer(prog, bar, rng)
         mix = master(reverb(mix, rng=rng))

@@ -9,6 +9,7 @@ import {SANS, TRANSITION_FRAMES} from './theme';
 import {Background} from './components/Background';
 import {Captions, autoTimeWords, sceneStarts} from './components/Captions';
 import {Counter, Globe, Hook, IconGrid, Legacy, Machine, Outro} from './scenes/Scenes';
+import {MusicBed, pickTrack} from './components/MusicBed';
 
 const renderScene = (s: Scene, brand: ShortProps['brand']) => {
   switch (s.type) {
@@ -56,7 +57,7 @@ const Bug: React.FC<{brand: ShortProps['brand']}> = ({brand}) => {
   );
 };
 
-export const HistoryShort: React.FC<ShortProps> = ({brand, scenes, voiceoverUrl, musicUrl, captions, sfx = true}) => {
+export const HistoryShort: React.FC<ShortProps> = ({brand, scenes, voiceoverUrl, musicUrl, musicFile, musicVolume, captions, sfx = true}) => {
   const {fps} = useVideoConfig();
   const words = captions && captions.length ? captions : autoTimeWords(scenes, fps);
   const starts = sceneStarts(scenes, fps);
@@ -80,7 +81,10 @@ export const HistoryShort: React.FC<ShortProps> = ({brand, scenes, voiceoverUrl,
       <Bug brand={brand} />
       <ProgressBar color={brand.accent} />
       {voiceoverUrl && <Audio src={voiceoverUrl} />}
-      {musicUrl && <Audio src={musicUrl} volume={0.12} />}
+      {/* Background music: musicFile / musicUrl from props, otherwise a history track picked from the script */}
+      {musicFile !== 'none' && (
+        <MusicBed src={musicFile || musicUrl || pickTrack(scenes.map((sc) => sc.narration).join(' '), 'history')} words={words} base={musicVolume ?? 0.4} />
+      )}
       {sfx &&
         starts.slice(1).map((st, i) => (
           <Sequence key={i} from={st - 4} durationInFrames={30}>

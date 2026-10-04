@@ -40,6 +40,8 @@ export type ShortProps = {
   scenes: Scene[];
   voiceoverUrl?: string; // ElevenLabs MP3 URL (optional)
   musicUrl?: string; // background music URL (optional)
+  musicFile?: string; // e.g. "music/history-2.mp3" in /public; "none" = no music; default = auto-picked history track
+  musicVolume?: number; // default 0.4, dips under the voice automatically
   captions?: CaptionWord[]; // word timings from ElevenLabs (optional; else auto-timed)
   sfx?: boolean;
   post?: {content: string; platform_content?: Record<string, unknown>; account_ids: number[]; publish_now?: boolean};
