@@ -1,0 +1,90 @@
+name: Render and post Future Shift short
+
+on:
+  workflow_dispatch:
+    inputs:
+      props:
+        description: 'Full props JSON from n8n. Leave blank to render the sample props-future.json'
+        required: false
+        default: ''
+      post:
+        description: 'Post to socials after rendering? (true/false)'
+        required: false
+        default: 'false'
+      voice:
+        description: 'Kokoro voice (am_michael, am_fenrir, am_puck, af_heart, bm_george ...)'
+        required: false
+        default: 'am_michael'
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Write props from n8n
+        if: ${{ github.event.inputs.props != '' }}
+        env:
+          PROPS: ${{ github.event.inputs.props }}
+        run: printf '%s' "$PROPS" > props-future.json
+
+      # ---------- Voice: Kokoro (free) unless VOICE_ENGINE variable is set to "elevenlabs" ----------
+      - uses: actions/setup-python@v5
+        if: ${{ vars.VOICE_ENGINE != 'elevenlabs' }}
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements-voice.txt
+
+      - name: Install Kokoro (CPU)
+        if: ${{ vars.VOICE_ENGINE != 'elevenlabs' }}
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq espeak-ng
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements-voice.txt
+
+      - name: Cache Kokoro model
+        if: ${{ vars.VOICE_ENGINE != 'elevenlabs' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: kokoro-82m-v1
+
+      - name: Voiceover + word timings (Kokoro)
+        if: ${{ vars.VOICE_ENGINE != 'elevenlabs' }}
+        env:
+          KOKORO_VOICE: ${{ github.event.inputs.voice }}
+        run: python scripts/voice_kokoro.py props-future.json
+
+      - name: Voiceover + word timings (ElevenLabs)
+        if: ${{ vars.VOICE_ENGINE == 'elevenlabs' }}
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ vars.ELEVENLABS_VOICE_ID }}
+        run: node scripts/prepare.mjs props-future.json
+
+      # ---------- Render ----------
+      - name: Render video
+        run: npx remotion render FutureShort out/video.mp4 --props=./props-future.json --concurrency=2
+
+      - name: Keep a copy (Actions → this run → Artifacts)
+        uses: actions/upload-artifact@v4
+        with:
+          name: future-short
+          path: out/video.mp4
+          retention-days: 7
+
+      # ---------- Post ----------
+      - name: Post via PostEverywhere
+        if: ${{ github.event.inputs.post == 'true' }}
+        env:
+          PE_BASE_URL: ${{ vars.PE_BASE_URL }}
+          PE_API_KEY: ${{ secrets.PE_API_KEY }}
+        run: node scripts/post.mjs props-future.json

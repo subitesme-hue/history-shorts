@@ -1,0 +1,248 @@
+{
+  "name": "Future Shift Shorts — Brain → GitHub render",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 16
+            }
+          ]
+        }
+      },
+      "name": "Daily 4pm Dubai",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "Test run",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Picks today's technology.\n// Default: rotates through the built-in TOPICS list, one per day (no Google Sheet needed).\n// Optional: put a Google Sheets \"Get row(s)\" node in front (columns topic | visual | wiki_title | status)\n// and the first row with status = pending is used instead.\n// \"Test run\" (manual) renders only and never posts. The schedule posts.\nconst TOPICS = [[\"Artificial Intelligence\",\"neural\",\"Artificial_intelligence\"],[\"Blockchain\",\"chain\",\"Blockchain\"],[\"Industrial Robots\",\"robot\",\"Industrial_robot\"],[\"Smart Cities\",\"network\",\"Smart_city\"],[\"Quantum Computing\",\"orbit\",\"Quantum_computing\"],[\"Generative AI\",\"neural\",\"Generative_artificial_intelligence\"],[\"Smart Contracts\",\"chain\",\"Smart_contract\"],[\"Humanoid Robots\",\"robot\",\"Humanoid_robot\"],[\"Internet of Things\",\"network\",\"Internet_of_things\"],[\"Large Language Models\",\"neural\",\"Large_language_model\"],[\"Cryptocurrency\",\"chain\",\"Cryptocurrency\"],[\"Automation\",\"robot\",\"Automation\"],[\"Self-Driving Cars\",\"network\",\"Self-driving_car\"],[\"Fourth Industrial Revolution\",\"network\",\"Fourth_Industrial_Revolution\"],[\"Machine Learning\",\"neural\",\"Machine_learning\"],[\"Central Bank Digital Currency\",\"chain\",\"Central_bank_digital_currency\"],[\"3D Printing\",\"robot\",\"3D_printing\"],[\"Digital Twins\",\"network\",\"Digital_twin\"],[\"Computer Vision\",\"neural\",\"Computer_vision\"],[\"Decentralized Finance\",\"chain\",\"Decentralized_finance\"],[\"Delivery Robots\",\"robot\",\"Delivery_robot\"],[\"Drones\",\"network\",\"Unmanned_aerial_vehicle\"],[\"Brain-Computer Interfaces\",\"neural\",\"Brain–computer_interface\"],[\"Smart Grid\",\"network\",\"Smart_grid\"],[\"Augmented Reality\",\"orbit\",\"Augmented_reality\"],[\"Cloud Computing\",\"network\",\"Cloud_computing\"],[\"5G Networks\",\"network\",\"5G\"],[\"Nanotechnology\",\"orbit\",\"Nanotechnology\"],[\"Gene Editing\",\"orbit\",\"CRISPR_gene_editing\"],[\"Electric Vehicles\",\"network\",\"Electric_vehicle\"],[\"Edge Computing\",\"network\",\"Edge_computing\"],[\"Hydrogen Economy\",\"orbit\",\"Hydrogen_economy\"],[\"Virtual Reality\",\"orbit\",\"Virtual_reality\"],[\"Vertical Farming\",\"network\",\"Vertical_farming\"],[\"Cultured Meat\",\"orbit\",\"Cultured_meat\"],[\"Satellite Internet\",\"network\",\"Satellite_internet_constellation\"]];\n\nconst inputs = $input.all().map(i => i.json);\nconst fromSchedule = inputs.some(j => j && ('timestamp' in j || 'Readable date' in j));\nconst sheetRows = inputs.filter(r => r && r.topic && r.wiki_title);\nconst pending = sheetRows.find(r => String(r.status || '').toLowerCase() === 'pending');\nif (sheetRows.length && !pending) throw new Error('No row with status = pending left in the Topics sheet.');\n\n// Day number in Dubai time since the series started (5 Oct 2026).\nconst DAY = 86400000;\nconst dubaiNow = Date.now() + 4 * 3600000;\nconst dayIndex = Math.max(0, Math.floor(dubaiNow / DAY) - Math.floor(Date.UTC(2026, 9, 5) / DAY));\n\nlet row;\nif (pending) row = { ...pending };\nelse {\n  const [topic, visual, wiki_title] = TOPICS[dayIndex % TOPICS.length];\n  row = { topic, visual, wiki_title };\n}\nrow.day_index = dayIndex;\nrow.music = 'music/future-' + ((dayIndex % 4) + 1) + '.mp3';\nrow._test = !fromSchedule;\nreturn [{ json: row }];\n"
+      },
+      "name": "Pick Topic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://en.wikipedia.org/w/api.php?action=query&format=json&redirects=1&prop=extracts&explaintext=1&generator=search&gsrlimit=1&gsrsearch=' + encodeURIComponent(String($json.wiki_title).replace(/_/g, ' ')) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "TAI-News-History-Shorts/1.0 (https://tai.news)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Wikipedia Text",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        500,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Builds the OpenRouter request for one Future Shift short.\nconst row = $('Pick Topic').first().json;\nconst pages = Object.values(($json.query && $json.query.pages) || {});\nconst page = pages[0] || {};\nconst source = page.extract || '';\nif (source.length < 300) throw new Error('Wikipedia text missing or too short for: ' + row.wiki_title);\n\nconst SYSTEM = `You write 30-40 second vertical \"Future Shift\" shorts for T&I NEWS.\nEach short explains ONE emerging technology and how it is moving societies from the industrial age to a future, technology-driven society.\nAudience: curious non-engineers and business people worldwide (including the UAE and GCC). Tone: inspiring, clear, confident, honest.\n\nRULES\n1. Every fact (number, year, name, claim) must come from the SOURCE TEXT. Never invent statistics. If the source has no good number, use a year from the source in the \"stat\" scene with \"isYear\": true.\n2. Narration is plain spoken English: short sentences, no jargon. If a technical word is needed, explain it in everyday words. Total narration across all scenes: 80-100 words.\n3. The first scene must hook in under 3 seconds (a bold contrast, a surprising number, or a question).\n4. Use 6-7 scenes from the SCENE MENU. Always start with \"hook\" and end with \"outro\". Include exactly one \"shift\" and exactly one \"tech\".\n5. Present future effects as possibilities (\"could\", \"is starting to\") unless the source says they already happened.\n6. Output ONLY valid JSON matching the OUTPUT SHAPE. No markdown, no commentary. Replace every \"...\" and 0 with real content.\n\nSCENE MENU - every scene MUST have \"type\", \"durationSec\" (4-8) and \"narration\" (exact words spoken in that scene), plus:\n- hook: kicker (<=4 words), headline (<=7 words, stops just before the payoff), highlight (1-2 words, the payoff, may end with a full stop)\n- shift: then (<=32 chars, how the industrial age did it), next (<=32 chars, how the future society does it), optional thenLabel / nextLabel (<=18 chars)\n- stat: value (a number from the SOURCE), prefix (optional, e.g. \"$\"), suffix (optional, <=10 chars, e.g. \"billion\" or \"%\"), isYear (true if value is a year), decimals (0 or 1), label (<=50 chars), sub (<=36 chars)\n- tech: visual (neural|chain|robot|network|orbit - use the VISUAL HINT unless clearly wrong), title (<=26 chars, e.g. \"How it works\"), caption (<=44 chars)\n- steps: title (<=26 chars), steps (exactly 4 items, each <=26 chars, how the technology works in plain words)\n- impact: title (<=22 chars), items (exactly 3: {icon, sector (<=16 chars), change (<=30 chars)}); icon is one of factory|health|finance|retail|logistics|education|home|farm|city|energy|car|chip|shield|globe|people|chart\n- outro: topic (the technology name, <=24 chars), line (<=36 chars, forward-looking), cta (\"Follow for more future shifts\")\n\nOUTPUT SHAPE\n{\n  \"scenes\": [\n    {\"type\": \"hook\", \"durationSec\": 5, \"narration\": \"...\", \"kicker\": \"...\", \"headline\": \"...\", \"highlight\": \"...\"},\n    {\"type\": \"shift\", \"durationSec\": 6, \"narration\": \"...\", \"then\": \"...\", \"next\": \"...\"},\n    {\"type\": \"stat\", \"durationSec\": 5, \"narration\": \"...\", \"value\": 0, \"prefix\": \"\", \"suffix\": \"\", \"isYear\": false, \"decimals\": 0, \"label\": \"...\", \"sub\": \"...\"},\n    {\"type\": \"tech\", \"durationSec\": 6, \"narration\": \"...\", \"visual\": \"neural\", \"title\": \"...\", \"caption\": \"...\"},\n    {\"type\": \"steps\", \"durationSec\": 7, \"narration\": \"...\", \"title\": \"...\", \"steps\": [\"...\", \"...\", \"...\", \"...\"]},\n    {\"type\": \"impact\", \"durationSec\": 6, \"narration\": \"...\", \"title\": \"...\", \"items\": [{\"icon\": \"health\", \"sector\": \"...\", \"change\": \"...\"}, {\"icon\": \"finance\", \"sector\": \"...\", \"change\": \"...\"}, {\"icon\": \"city\", \"sector\": \"...\", \"change\": \"...\"}]},\n    {\"type\": \"outro\", \"durationSec\": 4.5, \"narration\": \"...\", \"topic\": \"...\", \"line\": \"...\", \"cta\": \"Follow for more future shifts\"}\n  ],\n  \"post\": {\n    \"content\": \"<IG/FB/TikTok caption: plain-language hook + 1 line on how it changes society + 8-12 hashtags>\",\n    \"youtube_title\": \"<max 90 chars, curiosity hook + technology name, ends with #Shorts>\",\n    \"youtube_description\": \"<2-3 plain sentences + 3-5 hashtags>\",\n    \"youtube_tags\": [\"<5-10 short tags>\"],\n    \"linkedin_caption\": \"<professional tone, 3-5 short lines: what the technology does, what it changes for business and society, a question to the reader, max 3 hashtags>\",\n    \"x_caption\": \"<one punchy line, max 100 characters, NO emojis, NO hashtags, NO website>\"\n  }\n}`;\n\nconst user = [\n  'TECHNOLOGY: ' + row.topic,\n  'VISUAL HINT: ' + row.visual,\n  'WIKIPEDIA ARTICLE: ' + (page.title || row.wiki_title),\n  '',\n  'SOURCE TEXT (the ONLY facts you may use):',\n  source.slice(0, 14000),\n].join('\\n');\n\nreturn [{ json: { brain_body: {\n  model: 'openai/gpt-4o',\n  temperature: 0.7,\n  response_format: { type: 'json_object' },\n  messages: [ { role: 'system', content: SYSTEM }, { role: 'user', content: user } ],\n} } }];\n"
+      },
+      "name": "Build Brain Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer PASTE_YOUR_OPENROUTER_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.brain_body) }}"
+      },
+      "name": "Brain (OpenRouter)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        980,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parses + validates the Brain output and builds the GitHub dispatch body for render-future.yml.\nlet raw = $json.choices?.[0]?.message?.content || '';\nraw = raw.replace(/^```(json)?/i, '').replace(/```$/, '').trim();\nlet p;\ntry { p = JSON.parse(raw); } catch (e) { throw new Error('Brain did not return valid JSON: ' + raw.slice(0, 300)); }\n\nconst row = $('Pick Topic').first().json;\nconst TYPES = ['hook', 'shift', 'stat', 'tech', 'steps', 'impact', 'outro'];\nconst VISUALS = ['neural', 'chain', 'robot', 'network', 'orbit'];\nconst ICONS = ['factory','health','finance','retail','logistics','education','home','farm','city','energy','car','chip','shield','globe','people','chart'];\nconst str = (v, max) => String(v ?? '').trim().slice(0, max);\n\nlet scenes = (Array.isArray(p.scenes) ? p.scenes : [])\n  .filter(s => s && typeof s === 'object')\n  .map(s => ({ ...s, type: String(s.type || '').toLowerCase() }))\n  .filter(s => TYPES.includes(s.type) && String(s.narration || '').trim());\n\nfor (const s of scenes) {\n  s.narration = String(s.narration).trim();\n  s.durationSec = Math.min(9, Math.max(4, Number(s.durationSec) || 5));\n  if (s.type === 'hook') { s.kicker = str(s.kicker || 'The future', 30); s.headline = str(s.headline, 60); s.highlight = str(s.highlight, 24); }\n  if (s.type === 'shift') { s.then = str(s.then, 40); s.next = str(s.next, 40); if (s.thenLabel) s.thenLabel = str(s.thenLabel, 20); if (s.nextLabel) s.nextLabel = str(s.nextLabel, 20); }\n  if (s.type === 'stat') {\n    s.value = Number(String(s.value).replace(/[^0-9.\\-]/g, ''));\n    s.isYear = !!s.isYear || (Number.isInteger(s.value) && s.value >= 1000 && s.value <= 2100 && !s.prefix && !s.suffix);\n    s.decimals = s.isYear ? 0 : Math.min(1, Math.max(0, Number(s.decimals) || 0));\n    s.prefix = str(s.prefix, 3); s.suffix = str(s.suffix, 12); s.label = str(s.label, 60); s.sub = str(s.sub, 40);\n  }\n  if (s.type === 'tech') { if (!VISUALS.includes(s.visual)) s.visual = row.visual || 'neural'; s.title = str(s.title || 'How it works', 30); s.caption = str(s.caption, 50); }\n  if (s.type === 'steps') { s.title = str(s.title || 'How it works', 30); s.steps = (s.steps || []).slice(0, 4).map(x => str(x, 30)); }\n  if (s.type === 'impact') {\n    s.title = str(s.title || 'What changes', 26);\n    s.items = (s.items || []).slice(0, 3).map(it => ({ icon: ICONS.includes(it.icon) ? it.icon : 'chart', sector: str(it.sector, 18), change: str(it.change, 34) }));\n  }\n  if (s.type === 'outro') { s.topic = str(s.topic || row.topic, 28); s.line = str(s.line || 'The future is being built now.', 40); s.cta = 'Follow for more future shifts'; }\n}\n// Drop scenes that would render broken.\nscenes = scenes.filter(s =>\n  !(s.type === 'stat' && !isFinite(s.value)) &&\n  !(s.type === 'steps' && s.steps.length < 3) &&\n  !(s.type === 'impact' && s.items.length < 2) &&\n  !(s.type === 'hook' && (!s.headline || !s.highlight)));\n\n// Exactly one hook first, one outro last.\nlet hook = scenes.find(s => s.type === 'hook');\nlet outro = scenes.find(s => s.type === 'outro');\nscenes = scenes.filter(s => s.type !== 'hook' && s.type !== 'outro');\nif (!hook) throw new Error('Brain returned no usable hook scene. Types: ' + JSON.stringify((p.scenes || []).map(s => s && s.type)));\nif (!outro) outro = { type: 'outro', durationSec: 4.5, topic: row.topic, line: 'The future is being built now.', cta: 'Follow for more future shifts', narration: row.topic + '. Follow T&I News for more future shifts.' };\nscenes = [hook, ...scenes.slice(0, 5), outro];\nif (scenes.length < 5) throw new Error('Brain returned too few usable scenes: ' + scenes.map(s => s.type).join(','));\n\n// Fixed brand, music and posting targets (never trusted to the model).\nconst out = {\n  brand: { name: 'T&I NEWS', url: 'tai.news', series: 'FUTURE SHIFT', bg: '#F7F2E6', bg2: '#EADFC6', accent: '#B07F22', accentSoft: '#D8B565', text: '#0B1F44' },\n  sfx: true,\n  musicFile: row.music || 'music/future-1.mp3',\n  musicVolume: 0.4,\n  scenes,\n};\n\nfunction withSite(text) {\n  const cta = '🔗 Visit tai.news for more';\n  let t = String(text || '').trim();\n  if (!t || /tai\\.news/i.test(t)) return t;\n  const lines = t.split('\\n');\n  const tagLine = lines.findIndex(l => /^\\s*#/.test(l));\n  if (tagLine === -1) return t + '\\n\\n' + cta;\n  return lines.slice(0, tagLine).join('\\n').trim() + '\\n\\n' + cta + '\\n\\n' + lines.slice(tagLine).join('\\n').trim();\n}\nfunction xCaption(text) {\n  const site = ' tai.news';\n  let t = String(text || '')\n    .replace(/[\\u{1F000}-\\u{1FFFF}\\u{2600}-\\u{27BF}\\u{FE0F}\\u{200D}]/gu, '')\n    .replace(/#\\S+/g, '')\n    .replace(/https?:\\/\\/\\S+|\\btai\\.news\\b/gi, '')\n    .replace(/\\s+/g, ' ').trim();\n  const max = 119 - site.length;\n  if (t.length > max) t = t.slice(0, max).replace(/\\s+\\S*$/, '').replace(/[,;:\\s]+$/, '') + '…';\n  return t + site;\n}\n\nconst b = p.post || {};\nif (!b.content) throw new Error('Brain returned no post.content caption');\nlet ytTitle = (b.youtube_title || (row.topic + ': ' + hook.headline + ' ' + hook.highlight + ' #Shorts')).trim();\nif (ytTitle.length > 100) ytTitle = ytTitle.slice(0, 97) + '...';\nout.post = {\n  content: withSite(b.content),\n  // Facebook 7748, Instagram 7752, TikTok 7908, YouTube 7751, LinkedIn 9116. X 7747 is a separate post.\n  account_ids: [7748, 7752, 7908, 7751, 9116],\n  publish_now: true,\n  platform_content: {\n    youtube: {\n      title: ytTitle,\n      description: withSite(b.youtube_description || b.content),\n      privacy: 'public',\n      made_for_kids: false,\n      is_short: true,\n      tags: Array.isArray(b.youtube_tags) ? b.youtube_tags.slice(0, 15) : [],\n    },\n    linkedin: { content: withSite(b.linkedin_caption || b.content) },\n  },\n  x: { account_ids: [7747], content: xCaption(b.x_caption || hook.narration) },\n};\n\nreturn [{ json: {\n  props: out,\n  // Manual \"Test run\" renders only; the schedule posts.\n  dispatch_body: { ref: 'main', inputs: { props: JSON.stringify(out), post: row._test ? 'false' : 'true', voice: 'am_michael' } },\n} }];\n"
+      },
+      "name": "Build Props",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.github.com/repos/subitesme-hue/history-shorts/actions/workflows/render-future.yml/dispatches",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer PASTE_YOUR_GITHUB_TOKEN"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.dispatch_body) }}"
+      },
+      "name": "Render on GitHub",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1460,
+        100
+      ]
+    }
+  ],
+  "connections": {
+    "Daily 4pm Dubai": {
+      "main": [
+        [
+          {
+            "node": "Pick Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test run": {
+      "main": [
+        [
+          {
+            "node": "Pick Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Topic": {
+      "main": [
+        [
+          {
+            "node": "Wikipedia Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia Text": {
+      "main": [
+        [
+          {
+            "node": "Build Brain Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Brain Request": {
+      "main": [
+        [
+          {
+            "node": "Brain (OpenRouter)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brain (OpenRouter)": {
+      "main": [
+        [
+          {
+            "node": "Build Props",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Props": {
+      "main": [
+        [
+          {
+            "node": "Render on GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Dubai"
+  },
+  "pinData": {}
+}

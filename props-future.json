@@ -1,0 +1,89 @@
+{
+  "brand": {
+    "name": "T&I NEWS",
+    "url": "tai.news",
+    "series": "FUTURE SHIFT",
+    "bg": "#F7F2E6",
+    "bg2": "#EADFC6",
+    "accent": "#B07F22",
+    "accentSoft": "#D8B565",
+    "text": "#0B1F44"
+  },
+  "sfx": true,
+  "musicFile": "music/future-1.mp3",
+  "musicVolume": 0.4,
+  "scenes": [
+    {
+      "type": "hook",
+      "durationSec": 5,
+      "kicker": "A new engine",
+      "headline": "The steam engine of our age is",
+      "highlight": "intelligence.",
+      "narration": "Steam powered the industrial age. Today a new engine is rising: artificial intelligence."
+    },
+    {
+      "type": "shift",
+      "durationSec": 6,
+      "thenLabel": "Industrial age",
+      "then": "Machines replaced muscle",
+      "nextLabel": "Future society",
+      "next": "Machines assist the mind",
+      "narration": "Factories once replaced human muscle. Now, machines are learning to assist the human mind."
+    },
+    {
+      "type": "stat",
+      "durationSec": 5,
+      "value": 100,
+      "suffix": "million",
+      "label": "ChatGPT users within two months of launch",
+      "sub": "Among the fastest-growing apps ever",
+      "narration": "ChatGPT reached one hundred million users in about two months."
+    },
+    {
+      "type": "tech",
+      "durationSec": 6,
+      "visual": "neural",
+      "title": "How AI learns",
+      "caption": "Patterns in, predictions out",
+      "narration": "AI learns by spotting patterns in huge amounts of data, then uses them to make predictions."
+    },
+    {
+      "type": "impact",
+      "durationSec": 6,
+      "title": "Already changing",
+      "items": [
+        {"icon": "health", "sector": "Healthcare", "change": "Helps doctors read scans"},
+        {"icon": "finance", "sector": "Banking", "change": "Flags fraud in seconds"},
+        {"icon": "logistics", "sector": "Logistics", "change": "Plans smarter routes"}
+      ],
+      "narration": "It is already helping doctors read scans, banks catch fraud, and couriers plan routes."
+    },
+    {
+      "type": "outro",
+      "durationSec": 4.5,
+      "topic": "Artificial Intelligence",
+      "line": "The future is being built now.",
+      "cta": "Follow for more future shifts",
+      "narration": "That is the future shift. Follow T&I News for more."
+    }
+  ],
+  "post": {
+    "content": "Steam powered the industrial age. AI is the new engine. 🤖\n\n🔗 Visit tai.news for more\n\n#AI #ArtificialIntelligence #FutureTech #Innovation #TechExplained #FutureShift #Technology #DigitalTransformation",
+    "account_ids": [7748, 7752, 7908, 7751, 9116],
+    "publish_now": true,
+    "platform_content": {
+      "youtube": {
+        "title": "AI is the steam engine of our age #Shorts",
+        "description": "Factories replaced muscle. AI is learning to assist the mind. #AI #FutureTech #Innovation\n\n🔗 Visit tai.news for more",
+        "privacy": "public",
+        "made_for_kids": false,
+        "is_short": true,
+        "tags": ["ai", "artificial intelligence", "future tech", "innovation", "technology"]
+      },
+      "linkedin": {
+        "content": "The industrial age replaced muscle with machines. AI is starting to assist the mind.\n\nHealthcare, banking and logistics are already changing.\n\nWhich industry do you think shifts next?\n\n🔗 Visit tai.news for more\n\n#AI #Innovation #FutureOfWork"
+      }
+    },
+    "x": {"account_ids": [7747], "content": "AI is the steam engine of our age. Here is what changes. tai.news"}
+  }
+}

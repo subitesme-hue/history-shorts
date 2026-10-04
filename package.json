@@ -7,8 +7,10 @@
     "render": "remotion render HistoryShort out/video.mp4 --props=./props.json"
   },
   "dependencies": {
+    "@fontsource/dm-serif-display": "^5.3.0",
     "@fontsource/montserrat": "^5.3.0",
     "@fontsource/playfair-display": "^5.3.0",
+    "@fontsource/space-grotesk": "^5.3.0",
     "@remotion/cli": "^4.0.532",
     "@remotion/transitions": "^4.0.532",
     "@types/d3-geo": "^3.1.1",

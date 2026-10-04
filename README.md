@@ -20,3 +20,7 @@ whoosh SFX and progress bar. 1080×1920, 30 fps.
 2. `npm ci`
 3. `npm run studio` → opens Remotion Studio in your browser. Edit `props.json` and watch it update.
 4. `npm run render` → `out/video.mp4`.
+
+## Second series: Future Shift (emerging tech)
+Ivory/gold/navy explainers about AI, blockchain, robotics and more — composition `FutureShort`, workflow
+`render-future.yml`, n8n file `n8n/future-shorts-n8n.json`. See `FUTURE_SETUP.md`.
