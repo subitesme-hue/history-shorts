@@ -53,9 +53,13 @@ if (props.post.account_ids?.length) {
   console.log('Main post OK:', JSON.stringify(res).slice(0, 400));
 }
 // X gets its own post with its own short caption (kept under 120 characters, includes the website).
+// The clickable link goes in a reply (PostEverywhere settings.firstComment), as X often drops links from the main post.
 if (props.post.x?.account_ids?.length && props.post.x.content) {
   try {
-    const res = await publish(props.post.x.account_ids, props.post.x.content, {});
+    const xLink = props.post.x.first_comment || 'Watch more: https://tai.news';
+    const res = await publish(props.post.x.account_ids, props.post.x.content, {
+      x: {content: props.post.x.content, settings: {replySettings: 'everyone', firstComment: xLink}},
+    });
     console.log('X post OK:', JSON.stringify(res).slice(0, 400));
   } catch (e) {
     console.error('X post FAILED (other platforms already posted):', e.message);
