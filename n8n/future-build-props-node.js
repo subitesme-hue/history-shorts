@@ -5,19 +5,22 @@ let p;
 try { p = JSON.parse(raw); } catch (e) { throw new Error('Brain did not return valid JSON: ' + raw.slice(0, 300)); }
 
 const row = $('Pick Topic').first().json;
-const TYPES = ['hook', 'shift', 'stat', 'tech', 'steps', 'impact', 'outro'];
+const TYPES = ['hook', 'cinema', 'shift', 'stat', 'tech', 'steps', 'impact', 'outro'];
+const ANIM = ['shift', 'stat', 'tech', 'steps', 'impact'];
+const cleanPrompt = (x) => String(x || '').replace(/\s+/g, ' ').trim().slice(0, 600);
 const VISUALS = ['neural', 'chain', 'robot', 'network', 'orbit'];
 const ICONS = ['factory','health','finance','retail','logistics','education','home','farm','city','energy','car','chip','shield','globe','people','chart'];
 const str = (v, max) => String(v ?? '').trim().slice(0, max);
 
 let scenes = (Array.isArray(p.scenes) ? p.scenes : [])
   .filter(s => s && typeof s === 'object')
-  .map(s => ({ ...s, type: String(s.type || '').toLowerCase() }))
+  .map(s => ({ ...s, type: ['footage', 'broll', 'video', 'cinematic', 'shot'].includes(String(s.type || '').toLowerCase()) ? 'cinema' : String(s.type || '').toLowerCase() }))
   .filter(s => TYPES.includes(s.type) && String(s.narration || '').trim());
 
 for (const s of scenes) {
   s.narration = String(s.narration).trim();
   s.durationSec = Math.min(9, Math.max(4, Number(s.durationSec) || 5));
+  if (s.type === 'cinema') { s.prompt = cleanPrompt(s.prompt); s.label = str(s.label, 32); }
   if (s.type === 'hook') { s.kicker = str(s.kicker || 'The future', 30); s.headline = str(s.headline, 60); s.highlight = str(s.highlight, 24); }
   if (s.type === 'shift') { s.then = str(s.then, 40); s.next = str(s.next, 40); if (s.thenLabel) s.thenLabel = str(s.thenLabel, 20); if (s.nextLabel) s.nextLabel = str(s.nextLabel, 20); }
   if (s.type === 'stat') {
@@ -39,6 +42,7 @@ scenes = scenes.filter(s =>
   !(s.type === 'stat' && !isFinite(s.value)) &&
   !(s.type === 'steps' && s.steps.length < 3) &&
   !(s.type === 'impact' && s.items.length < 2) &&
+  !(s.type === 'cinema' && s.prompt.length < 20) &&
   !(s.type === 'hook' && (!s.headline || !s.highlight)));
 
 // Exactly one hook first, one outro last.
@@ -47,7 +51,18 @@ let outro = scenes.find(s => s.type === 'outro');
 scenes = scenes.filter(s => s.type !== 'hook' && s.type !== 'outro');
 if (!hook) throw new Error('Brain returned no usable hook scene. Types: ' + JSON.stringify((p.scenes || []).map(s => s && s.type)));
 if (!outro) outro = { type: 'outro', durationSec: 4.5, topic: row.topic, line: 'The future is being built now.', cta: 'Follow for more future shifts', narration: row.topic + '. Follow T&I News for more future shifts.' };
-scenes = [hook, ...scenes.slice(0, 5), outro];
+// AI footage budget: up to 4 cinema scenes; animation limited to 2 scenes (+ the short outro) = roughly 10-25 s.
+let nCinema = 0, nAnim = 0;
+scenes = scenes.filter(s => (s.type === 'cinema' ? ++nCinema <= 4 : ANIM.includes(s.type) ? ++nAnim <= 2 : false));
+const animScenes = scenes.filter(s => ANIM.includes(s.type));
+if (animScenes.length > 1 && animScenes.reduce((a, s) => a + s.narration.split(/\s+/).length, 0) > 50) {
+  const longest = [...animScenes].sort((a, b) => b.narration.length - a.narration.length)[0];
+  scenes = scenes.filter(s => s !== longest);
+}
+hook.prompt = cleanPrompt(hook.prompt) || (scenes.find(s => s.type === 'cinema') || {}).prompt ||
+  `A smoky 19th-century factory floor dissolving into a bright modern space where ${row.topic} is at work, warm golden light, slow push-in.`;
+if (!scenes.some(s => s.type === 'cinema')) throw new Error('Brain returned no cinema scenes with a prompt. Types: ' + JSON.stringify((p.scenes || []).map(s => s && s.type)));
+scenes = [hook, ...scenes, outro];
 if (scenes.length < 5) throw new Error('Brain returned too few usable scenes: ' + scenes.map(s => s.type).join(','));
 
 // Fixed brand, music and posting targets (never trusted to the model).

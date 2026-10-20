@@ -11,6 +11,8 @@ import {FUTURE_BRAND, GROTESK, a} from './style';
 import {Backdrop} from './Backdrop';
 import {FCaptions, fAutoTime, fSceneStarts} from './FCaptions';
 import {Hook, Impact, Outro, Shift, Stat, Steps, Tech} from './FScenes';
+import {CinemaScene} from '../components/Cinema';
+import {DISPLAY} from './style';
 
 const renderScene = (s: FScene, brand: FBrand) => {
   switch (s.type) {
@@ -28,6 +30,8 @@ const renderScene = (s: FScene, brand: FBrand) => {
       return <Impact s={s} brand={brand} />;
     case 'outro':
       return <Outro s={s} brand={brand} />;
+    case 'cinema':
+      return <CinemaScene s={s} look={{dark: false, bg: brand.bg, text: brand.text, accent: brand.accent, label: GROTESK, display: DISPLAY}} />;
   }
 };
 
@@ -70,7 +74,7 @@ const GoldSweep: React.FC<{brand: FBrand}> = ({brand}) => {
 };
 
 const Bug: React.FC<{brand: FBrand}> = ({brand}) => (
-  <div style={{position: 'absolute', top: 72, left: 70, display: 'flex', alignItems: 'center', gap: 14}}>
+  <div style={{position: 'absolute', top: 60, left: 56, display: 'flex', alignItems: 'center', gap: 14, background: a(brand.bg, 0.86), padding: '10px 18px', borderRadius: 40}}>
     <div style={{width: 16, height: 16, borderRadius: 8, background: brand.accent}} />
     <span style={{fontFamily: GROTESK, fontWeight: 700, fontSize: 30, letterSpacing: 4, color: brand.text}}>{brand.name}</span>
     <span style={{fontFamily: GROTESK, fontWeight: 600, fontSize: 26, letterSpacing: 4, color: brand.accent}}>· {brand.series}</span>
@@ -138,7 +142,7 @@ export const FutureShort: React.FC<FutureProps> = ({brand: brandIn, scenes, capt
           <GoldSweep brand={brand} />
         </Sequence>
       ))}
-      <FCaptions words={words} brand={brand} />
+      <FCaptions words={words} brand={brand} footage={scenes.map((s, i) => [starts[i] + (i ? 6 : 0), starts[i] + Math.round(s.durationSec * fps) - 6, s.clip] as const).filter((r) => r[2]).map((r) => [r[0], r[1]] as [number, number])} />
       <Bug brand={brand} />
       <Progress brand={brand} />
       {musicFile && <Audio src={staticFile(musicFile)} loop volume={(f) => curve[Math.min(curve.length - 1, Math.max(0, f))]} />}

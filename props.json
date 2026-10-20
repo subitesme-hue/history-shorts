@@ -14,7 +14,15 @@
       "kicker": "800 years ago",
       "headline": "He described a machine you could",
       "highlight": "program.",
-      "narration": "In 1206, one engineer described a machine you could program."
+      "narration": "In 1206, one engineer described a machine you could program.",
+      "prompt": "A dim 13th-century stone workshop at night, oil lamps glowing, an engineer seen from behind leaning over a large brass and wood clockwork machine with turning gears, slow dolly-in over his shoulder."
+    },
+    {
+      "type": "cinema",
+      "durationSec": 5,
+      "label": "Upper Mesopotamia · 1206",
+      "narration": "His name was Al-Jazari, chief engineer at the Artuqid court in Upper Mesopotamia.",
+      "prompt": "Golden-hour aerial shot over a medieval Mesopotamian stone citadel on a hill above a river valley, palm trees and mudbrick houses, slow drone push forward."
     },
     {
       "type": "globe",
@@ -26,21 +34,11 @@
       "narration": "His name was Al-Jazari, chief engineer at the Artuqid court in Upper Mesopotamia."
     },
     {
-      "type": "counter",
+      "type": "cinema",
       "durationSec": 5,
-      "to": 1206,
-      "label": "The Book of Knowledge of Ingenious Mechanical Devices",
-      "sub": "Completed in 1206",
-      "narration": "That year he finished The Book of Knowledge of Ingenious Mechanical Devices."
-    },
-    {
-      "type": "iconGrid",
-      "durationSec": 4.5,
-      "count": 50,
-      "icon": "gear",
-      "value": "Clocks · pumps · automata · water-raising machines",
-      "label": "Mechanical devices",
-      "narration": "Inside: fifty ingenious mechanical devices."
+      "label": "The Book of Knowledge",
+      "narration": "That year he finished The Book of Knowledge of Ingenious Mechanical Devices.",
+      "prompt": "Close-up of a scholar's hands turning the pages of an old illuminated manuscript full of hand-drawn machine diagrams, candlelight flicker, slow tilt across the page."
     },
     {
       "type": "machine",
@@ -55,27 +53,11 @@
       "narration": "One was a band of musical automata. Pegs on a rotating drum set the beat. Move the pegs, change the rhythm."
     },
     {
-      "type": "legacy",
-      "durationSec": 6,
-      "title": "Then → Now",
-      "items": [
-        {
-          "icon": "engine",
-          "then": "Crankshaft & camshaft",
-          "now": "Car engines"
-        },
-        {
-          "icon": "robot",
-          "then": "Programmable automata",
-          "now": "Robots"
-        },
-        {
-          "icon": "clock",
-          "then": "Elephant water clock",
-          "now": "Timekeeping"
-        }
-      ],
-      "narration": "The crankshaft and camshaft he described still turn inside engines today."
+      "type": "cinema",
+      "durationSec": 5,
+      "label": "Still turning today",
+      "narration": "The crankshaft and camshaft he described still turn inside engines today.",
+      "prompt": "Macro shot inside a modern car engine, polished crankshaft and camshaft spinning in warm light, slow orbit around the metal parts."
     },
     {
       "type": "outro",

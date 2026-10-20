@@ -18,6 +18,7 @@ import type {
 import {SANS, SERIF} from '../theme';
 import {Gear} from '../components/Gear';
 import {Icon} from '../components/Icon';
+import {ClipLayer} from '../components/Cinema';
 
 const land = feature(landTopo as any, (landTopo as any).objects.land) as any;
 
@@ -27,13 +28,13 @@ const useEnter = (delay = 0, damping = 14) => {
   return spring({frame: frame - delay, fps, config: {damping, stiffness: 140}});
 };
 
-const Kicker: React.FC<{text: string; brand: Brand; delay?: number; instant?: boolean}> = ({text, brand, delay = 0, instant = false}) => {
+const Kicker: React.FC<{text: string; brand: Brand; delay?: number; instant?: boolean; glow?: boolean}> = ({text, brand, delay = 0, instant = false, glow = false}) => {
   const anim = useEnter(delay);
   const e = instant ? 1 : anim;
   return (
     <div style={{display: 'flex', alignItems: 'center', gap: 18, opacity: e, transform: `translateY(${(1 - e) * 30}px)`}}>
       <div style={{width: interpolate(e, [0, 1], [0, 70]), height: 6, background: brand.accent, borderRadius: 3}} />
-      <div style={{fontFamily: SANS, fontWeight: 800, fontSize: 40, letterSpacing: 8, color: brand.accent}}>{text.toUpperCase()}</div>
+      <div style={{fontFamily: SANS, fontWeight: 800, fontSize: 40, letterSpacing: 8, color: brand.accent, textShadow: glow ? '0 2px 12px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.9)' : undefined}}>{text.toUpperCase()}</div>
     </div>
   );
 };
@@ -46,15 +47,18 @@ export const Hook: React.FC<{s: HookScene; brand: Brand}> = ({s, brand}) => {
   const hl = useEnter(0);
   const underline = 1;
   const zoom = interpolate(frame, [0, s.durationSec * fps], [1, 1.08]);
+  const look = {dark: true, bg: brand.bg, text: brand.text, accent: brand.accent, label: SANS, display: SERIF};
+  const shadow = s.clip ? '0 4px 24px rgba(0,0,0,0.85), 0 2px 4px rgba(0,0,0,0.9)' : undefined;
   return (
     <AbsoluteFill>
-      <svg width={1080} height={1920} style={{position: 'absolute'}}>
+      {s.clip && <ClipLayer clip={s.clip} durationSec={s.durationSec} clipSec={s.clipSec} look={look} />}
+      {!s.clip && <svg width={1080} height={1920} style={{position: 'absolute'}}>
         <Gear cx={860} cy={420} r={260} teeth={24} angle={frame * 0.6} color={brand.accent} opacity={0.14} />
         <Gear cx={500} cy={220} r={150} teeth={14} angle={-frame * 0.6 * (24 / 14) + 9} color={brand.accent} opacity={0.1} />
         <Gear cx={230} cy={1020} r={190} teeth={18} angle={-frame * 0.5} color={brand.text} opacity={0.05} />
-      </svg>
+      </svg>}
       <AbsoluteFill style={{padding: '0 90px', justifyContent: 'center', top: -250, transform: `scale(${zoom})`}}>
-        <Kicker text={s.kicker} brand={brand} instant />
+        <Kicker text={s.kicker} brand={brand} instant glow={!!s.clip} />
         <div style={{marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: '0 26px'}}>
           {words.map((w, i) => {
             // Frame 0 is the thumbnail, so words are fully visible from the start and just "settle" (no fade-in).
@@ -68,6 +72,7 @@ export const Hook: React.FC<{s: HookScene; brand: Brand}> = ({s, brand}) => {
                   fontSize: 122,
                   lineHeight: 1.08,
                   color: brand.text,
+                  textShadow: shadow,
                   opacity: 1,
                   transform: `translateY(${(1 - e) * 14}px)`,
                   display: 'inline-block',
@@ -79,7 +84,7 @@ export const Hook: React.FC<{s: HookScene; brand: Brand}> = ({s, brand}) => {
           })}
         </div>
         <div style={{position: 'relative', alignSelf: 'flex-start', marginTop: 10, opacity: 1, transform: `scale(${interpolate(hl, [0, 1], [1.12, 1])})`, transformOrigin: 'left center'}}>
-          <span style={{fontFamily: SERIF, fontStyle: 'italic', fontWeight: 700, fontSize: 150, color: brand.accent}}>{s.highlight}</span>
+          <span style={{fontFamily: SERIF, fontStyle: 'italic', fontWeight: 700, fontSize: 150, color: brand.accent, textShadow: shadow}}>{s.highlight}</span>
           <div style={{position: 'absolute', left: 0, bottom: 6, height: 12, width: `${underline * 100}%`, background: brand.accent, borderRadius: 6}} />
         </div>
       </AbsoluteFill>

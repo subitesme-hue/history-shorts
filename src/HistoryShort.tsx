@@ -10,6 +10,8 @@ import {Background} from './components/Background';
 import {Captions, autoTimeWords, sceneStarts} from './components/Captions';
 import {Counter, Globe, Hook, IconGrid, Legacy, Machine, Outro} from './scenes/Scenes';
 import {MusicBed, pickTrack} from './components/MusicBed';
+import {CinemaScene} from './components/Cinema';
+import {SERIF} from './theme';
 
 const renderScene = (s: Scene, brand: ShortProps['brand']) => {
   switch (s.type) {
@@ -27,6 +29,8 @@ const renderScene = (s: Scene, brand: ShortProps['brand']) => {
       return <Legacy s={s} brand={brand} />;
     case 'outro':
       return <Outro s={s} brand={brand} />;
+    case 'cinema':
+      return <CinemaScene s={s} look={{dark: true, bg: brand.bg, text: brand.text, accent: brand.accent, label: SANS, display: SERIF}} />;
   }
 };
 
@@ -51,8 +55,8 @@ const Bug: React.FC<{brand: ShortProps['brand']}> = ({brand}) => {
   return (
     <div style={{position: 'absolute', top: 70, left: 70, opacity: o, display: 'flex', alignItems: 'center', gap: 14}}>
       <div style={{width: 16, height: 16, borderRadius: 8, background: brand.accent}} />
-      <span style={{fontFamily: SANS, fontWeight: 900, fontSize: 30, letterSpacing: 4, color: brand.text}}>{brand.name}</span>
-      <span style={{fontFamily: SANS, fontWeight: 600, fontSize: 26, letterSpacing: 3, color: brand.accent}}>· FORGOTTEN INNOVATORS</span>
+      <span style={{fontFamily: SANS, fontWeight: 900, fontSize: 30, letterSpacing: 4, color: brand.text, textShadow: '0 2px 10px rgba(0,0,0,0.7)'}}>{brand.name}</span>
+      <span style={{fontFamily: SANS, fontWeight: 600, fontSize: 26, letterSpacing: 3, color: brand.accent, textShadow: '0 2px 10px rgba(0,0,0,0.7)'}}>· FORGOTTEN INNOVATORS</span>
     </div>
   );
 };

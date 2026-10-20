@@ -23,7 +23,7 @@ on:
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     permissions:
       contents: write
     steps:
@@ -40,6 +40,18 @@ jobs:
         env:
           PROPS: ${{ github.event.inputs.props }}
         run: printf '%s' "$PROPS" > props-future.json
+
+      # ---------- AI cinematic clips (Seedance via KIE.AI), generated while the voice is made ----------
+      - name: Start AI clips (background)
+        env:
+          KIE_API_KEY: ${{ secrets.KIE_API_KEY }}
+          SEEDANCE_MODEL: ${{ vars.SEEDANCE_MODEL }}
+          SEEDANCE_RESOLUTION: ${{ vars.SEEDANCE_RESOLUTION }}
+          SEEDANCE_DURATION: ${{ vars.SEEDANCE_DURATION }}
+          AI_CLIPS_MAX: ${{ vars.AI_CLIPS_MAX }}
+        run: |
+          mkdir -p public/clips
+          nohup node scripts/ai_clips.mjs props-future.json > public/clips/log.txt 2>&1 &
 
       # ---------- Voice: Kokoro (free) unless VOICE_ENGINE variable is set to "elevenlabs" ----------
       - uses: actions/setup-python@v5
@@ -75,6 +87,13 @@ jobs:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           ELEVENLABS_VOICE_ID: ${{ vars.ELEVENLABS_VOICE_ID }}
         run: node scripts/prepare.mjs props-future.json
+
+      - name: Wait for AI clips and add them to the video
+        env:
+          SEEDANCE_DURATION: ${{ vars.SEEDANCE_DURATION }}
+        run: |
+          node scripts/merge_clips.mjs props-future.json
+          echo "----- AI clip log -----"; cat public/clips/log.txt || true
 
       # ---------- Render ----------
       - name: Render video

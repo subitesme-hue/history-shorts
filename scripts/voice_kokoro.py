@@ -25,7 +25,9 @@ TRANSITION_FRAMES = 12  # keep in sync with src/theme.ts
 SAMPLE_RATE = 24000
 MIN_SEC = {"hook": 4, "globe": 5, "counter": 4.5, "iconGrid": 4, "machine": 7, "legacy": 5.5, "outro": 4,
            # Future Shift series
-           "shift": 5.5, "stat": 4.5, "tech": 5.5, "steps": 7, "impact": 5.5}
+           "shift": 5.5, "stat": 4.5, "tech": 5.5, "steps": 7, "impact": 5.5,
+           # AI cinematic footage scenes (both series)
+           "cinema": 4}
 
 
 def words_from_results(results):

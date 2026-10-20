@@ -19,7 +19,7 @@ export type FIcon =
 
 export type TechVisual = 'neural' | 'chain' | 'robot' | 'network' | 'orbit';
 
-type Base = {durationSec: number; narration: string; voiceFile?: string};
+type Base = {durationSec: number; narration: string; voiceFile?: string; prompt?: string; clip?: string; clipSec?: number};
 
 export type FHook = Base & {type: 'hook'; kicker: string; headline: string; highlight: string};
 export type FShift = Base & {type: 'shift'; thenLabel?: string; then: string; nextLabel?: string; next: string};
@@ -29,7 +29,9 @@ export type FSteps = Base & {type: 'steps'; title: string; steps: string[]};
 export type FImpact = Base & {type: 'impact'; title: string; items: {icon: FIcon; sector: string; change: string}[]};
 export type FOutro = Base & {type: 'outro'; topic: string; line: string; cta: string};
 
-export type FScene = FHook | FShift | FStat | FTech | FSteps | FImpact | FOutro;
+export type FCinema = Base & {type: 'cinema'; label?: string};
+
+export type FScene = FHook | FShift | FStat | FTech | FSteps | FImpact | FOutro | FCinema;
 
 export type FutureProps = {
   brand: FBrand;

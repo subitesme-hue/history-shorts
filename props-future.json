@@ -19,16 +19,15 @@
       "kicker": "A new engine",
       "headline": "The steam engine of our age is",
       "highlight": "intelligence.",
-      "narration": "Steam powered the industrial age. Today a new engine is rising: artificial intelligence."
+      "narration": "Steam powered the industrial age. Today a new engine is rising: artificial intelligence.",
+      "prompt": "A 19th-century steam factory floor with giant pistons and smoke slowly dissolving into a bright modern data center with glowing server racks, continuous slow push-in."
     },
     {
-      "type": "shift",
-      "durationSec": 6,
-      "thenLabel": "Industrial age",
-      "then": "Machines replaced muscle",
-      "nextLabel": "Future society",
-      "next": "Machines assist the mind",
-      "narration": "Factories once replaced human muscle. Now, machines are learning to assist the human mind."
+      "type": "cinema",
+      "durationSec": 5,
+      "label": "From muscle to mind",
+      "narration": "Factories once replaced human muscle. Now, machines are learning to assist the human mind.",
+      "prompt": "Robotic arms working beside engineers in a clean, sunlit modern factory, warm light, slow tracking shot along the production line."
     },
     {
       "type": "stat",
@@ -40,23 +39,26 @@
       "narration": "ChatGPT reached one hundred million users in about two months."
     },
     {
+      "type": "cinema",
+      "durationSec": 5,
+      "label": "Learning from patterns",
+      "narration": "AI learns by spotting patterns in huge amounts of data, then uses them to make predictions.",
+      "prompt": "Abstract glowing golden data streams flowing through a dark space and forming a network of light, slow camera fly-through."
+    },
+    {
       "type": "tech",
       "durationSec": 6,
       "visual": "neural",
       "title": "How AI learns",
       "caption": "Patterns in, predictions out",
-      "narration": "AI learns by spotting patterns in huge amounts of data, then uses them to make predictions."
+      "narration": "Think of it as a new kind of engine, one that runs on data instead of steam."
     },
     {
-      "type": "impact",
+      "type": "cinema",
       "durationSec": 6,
-      "title": "Already changing",
-      "items": [
-        {"icon": "health", "sector": "Healthcare", "change": "Helps doctors read scans"},
-        {"icon": "finance", "sector": "Banking", "change": "Flags fraud in seconds"},
-        {"icon": "logistics", "sector": "Logistics", "change": "Plans smarter routes"}
-      ],
-      "narration": "It is already helping doctors read scans, banks catch fraud, and couriers plan routes."
+      "narration": "It is already helping doctors read scans, banks catch fraud, and couriers plan routes.",
+      "label": "Already at work",
+      "prompt": "A doctor in a bright hospital reviewing a medical scan on a large screen while highlighted areas appear, seen from over the shoulder, slow push-in."
     },
     {
       "type": "outro",
@@ -69,7 +71,13 @@
   ],
   "post": {
     "content": "Steam powered the industrial age. AI is the new engine. 🤖\n\n🔗 Visit tai.news for more\n\n#AI #ArtificialIntelligence #FutureTech #Innovation #TechExplained #FutureShift #Technology #DigitalTransformation",
-    "account_ids": [7748, 7752, 7908, 7751, 9116],
+    "account_ids": [
+      7748,
+      7752,
+      7908,
+      7751,
+      9116
+    ],
     "publish_now": true,
     "platform_content": {
       "youtube": {
@@ -78,12 +86,23 @@
         "privacy": "public",
         "made_for_kids": false,
         "is_short": true,
-        "tags": ["ai", "artificial intelligence", "future tech", "innovation", "technology"]
+        "tags": [
+          "ai",
+          "artificial intelligence",
+          "future tech",
+          "innovation",
+          "technology"
+        ]
       },
       "linkedin": {
         "content": "The industrial age replaced muscle with machines. AI is starting to assist the mind.\n\nHealthcare, banking and logistics are already changing.\n\nWhich industry do you think shifts next?\n\n🔗 Visit tai.news for more\n\n#AI #Innovation #FutureOfWork"
       }
     },
-    "x": {"account_ids": [7747], "content": "AI is the steam engine of our age. Here is what changes. tai.news"}
+    "x": {
+      "account_ids": [
+        7747
+      ],
+      "content": "AI is the steam engine of our age. Here is what changes. tai.news"
+    }
   }
 }

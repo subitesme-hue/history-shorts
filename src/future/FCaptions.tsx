@@ -51,8 +51,10 @@ const paginate = (words: CaptionWord[]) => {
 };
 
 // Navy word-by-word captions on ivory; the spoken word sits on a gold pill.
-export const FCaptions: React.FC<{words: CaptionWord[]; brand: FBrand}> = ({words, brand}) => {
+export const FCaptions: React.FC<{words: CaptionWord[]; brand: FBrand; footage?: [number, number][]}> = ({words, brand, footage = []}) => {
   const frame = useCurrentFrame();
+  // Over AI footage: ivory words with a dark shadow; over the ivory backdrop: navy words with an ivory glow.
+  const dark = footage.some(([s, e]) => frame >= s && frame < e);
   const {fps} = useVideoConfig();
   const ms = (frame / fps) * 1000;
   const pages = paginate(words);
@@ -85,13 +87,13 @@ export const FCaptions: React.FC<{words: CaptionWord[]; brand: FBrand}> = ({word
                 fontSize: 86,
                 lineHeight: 1.08,
                 letterSpacing: -1,
-                color: brand.text,
+                color: on || !dark ? brand.text : brand.bg,
                 background: on ? brand.accentSoft : 'transparent',
                 padding: '2px 18px 8px',
                 borderRadius: 16,
                 boxShadow: on ? `0 10px 30px ${a(brand.accent, 0.35)}` : 'none',
                 transform: on ? `scale(${interpolate(pop, [0, 1], [0.92, 1.07])}) rotate(-1.5deg)` : 'none',
-                textShadow: on ? 'none' : `0 0 18px ${a(brand.bg, 1)}, 0 0 6px ${a(brand.bg, 1)}`,
+                textShadow: on ? 'none' : dark ? '0 4px 0 rgba(0,0,0,0.55), 0 0 22px rgba(0,0,0,0.75)' : `0 0 18px ${a(brand.bg, 1)}, 0 0 6px ${a(brand.bg, 1)}`,
               }}
             >
               {w.text.toUpperCase()}

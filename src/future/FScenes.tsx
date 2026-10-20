@@ -4,6 +4,7 @@ import type {FBrand, FHook, FImpact, FOutro, FShift, FStat, FSteps, FTech} from 
 import {DISPLAY, GROTESK, SAFE_TOP, a} from './style';
 import {FIcons} from './FIcons';
 import {TechVisualView} from './TechVisuals';
+import {ClipLayer} from '../components/Cinema';
 
 const useIn = (delay = 0, damping = 14, stiffness = 140) => {
   const frame = useCurrentFrame();
@@ -11,13 +12,13 @@ const useIn = (delay = 0, damping = 14, stiffness = 140) => {
   return spring({frame: frame - delay, fps, config: {damping, stiffness}});
 };
 
-const Kicker: React.FC<{text: string; brand: FBrand; delay?: number; instant?: boolean; center?: boolean}> = ({text, brand, delay = 0, instant, center}) => {
+const Kicker: React.FC<{text: string; brand: FBrand; delay?: number; instant?: boolean; center?: boolean; glow?: boolean}> = ({text, brand, delay = 0, instant, center, glow}) => {
   const anim = useIn(delay);
   const e = instant ? 1 : anim;
   return (
     <div style={{display: 'flex', alignItems: 'center', justifyContent: center ? 'center' : 'flex-start', gap: 18, opacity: e, transform: `translateY(${(1 - e) * 26}px)`}}>
       <div style={{width: interpolate(e, [0, 1], [0, 64]), height: 5, background: brand.accent, borderRadius: 3}} />
-      <div style={{fontFamily: GROTESK, fontWeight: 700, fontSize: 36, letterSpacing: 9, color: brand.accent}}>{text.toUpperCase()}</div>
+      <div style={{fontFamily: GROTESK, fontWeight: 700, fontSize: 36, letterSpacing: 9, color: glow ? brand.accentSoft : brand.accent, textShadow: glow ? '0 2px 12px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.9)' : undefined}}>{text.toUpperCase()}</div>
       {center && <div style={{width: interpolate(e, [0, 1], [0, 64]), height: 5, background: brand.accent, borderRadius: 3}} />}
     </div>
   );
@@ -35,9 +36,13 @@ export const Hook: React.FC<{s: FHook; brand: FBrand}> = ({s, brand}) => {
   const size = fit(s.headline, 124, 30);
   const sweep = interpolate(frame, [10, 40], [-400, 1400], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
   const zoom = interpolate(frame, [0, s.durationSec * fps], [1, 1.06]);
+  const onClip = !!s.clip;
+  const look = {dark: false, bg: brand.bg, text: brand.text, accent: brand.accent, label: GROTESK, display: DISPLAY};
+  const shadow = onClip ? '0 4px 24px rgba(0,0,0,0.85), 0 2px 4px rgba(0,0,0,0.9)' : undefined;
   return (
     <AbsoluteFill>
-      <svg width={1080} height={1920} style={{position: 'absolute'}}>
+      {onClip && <ClipLayer clip={s.clip!} durationSec={s.durationSec} clipSec={s.clipSec} look={look} />}
+      {!onClip && <svg width={1080} height={1920} style={{position: 'absolute'}}>
         <g transform={`rotate(${frame * 0.15} 540 760)`}>
           {Array.from({length: 48}).map((_, i) => {
             const ang = (i / 48) * Math.PI * 2;
@@ -57,26 +62,26 @@ export const Hook: React.FC<{s: FHook; brand: FBrand}> = ({s, brand}) => {
           })}
         </g>
         <circle cx={540} cy={760} r={200} fill="none" stroke={brand.accent} strokeOpacity={0.35} strokeWidth={3} />
-      </svg>
+      </svg>}
       <AbsoluteFill style={{padding: '0 84px', justifyContent: 'center', top: -110, transform: `scale(${zoom})`}}>
-        <Kicker text={s.kicker} brand={brand} instant />
+        <Kicker text={s.kicker} brand={brand} instant glow={onClip} />
         <div style={{marginTop: 36, display: 'flex', flexWrap: 'wrap', gap: '0 24px'}}>
           {words.map((w, i) => {
             // visible from frame 0 (thumbnail), words only settle into place
             const e = spring({frame: frame - i * 3, fps, config: {damping: 12, stiffness: 140}});
             return (
-              <span key={i} style={{fontFamily: DISPLAY, fontSize: size, lineHeight: 1.04, color: brand.text, display: 'inline-block', transform: `translateY(${(1 - e) * 16}px)`}}>
+              <span key={i} style={{fontFamily: DISPLAY, fontSize: size, lineHeight: 1.04, color: onClip ? brand.bg : brand.text, textShadow: shadow, display: 'inline-block', transform: `translateY(${(1 - e) * 16}px)`}}>
                 {w}
               </span>
             );
           })}
         </div>
         <div style={{position: 'relative', alignSelf: 'flex-start', marginTop: 6, transform: `scale(${interpolate(hl, [0, 1], [1.12, 1])})`, transformOrigin: 'left center'}}>
-          <span style={{fontFamily: DISPLAY, fontStyle: 'italic', fontSize: fit(s.highlight, 150, 12), color: brand.accent}}>{s.highlight}</span>
+          <span style={{fontFamily: DISPLAY, fontStyle: 'italic', fontSize: fit(s.highlight, 150, 12), color: onClip ? brand.accentSoft : brand.accent, textShadow: shadow}}>{s.highlight}</span>
           <div style={{position: 'absolute', left: 4, bottom: 10, height: 10, width: '100%', background: brand.accentSoft, borderRadius: 5, opacity: 0.8}} />
         </div>
         {/* light sweep across the title */}
-        <div style={{position: 'absolute', top: 380, left: sweep, width: 240, height: 1000, transform: 'skewX(-18deg)', background: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%)', WebkitMaskImage: 'linear-gradient(180deg, transparent 0%, black 30%, black 70%, transparent 100%)', maskImage: 'linear-gradient(180deg, transparent 0%, black 30%, black 70%, transparent 100%)'}} />
+        {!onClip && <div style={{position: 'absolute', top: 380, left: sweep, width: 240, height: 1000, transform: 'skewX(-18deg)', background: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%)', WebkitMaskImage: 'linear-gradient(180deg, transparent 0%, black 30%, black 70%, transparent 100%)', maskImage: 'linear-gradient(180deg, transparent 0%, black 30%, black 70%, transparent 100%)'}} />}
       </AbsoluteFill>
     </AbsoluteFill>
   );

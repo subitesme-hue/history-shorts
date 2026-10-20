@@ -10,7 +10,14 @@ export type Brand = {
 
 export type CaptionWord = {text: string; startMs: number; endMs: number};
 
-type Base = {durationSec: number; narration: string; voiceFile?: string /* set by scripts/prepare.mjs */};
+type Base = {
+  durationSec: number;
+  narration: string;
+  voiceFile?: string /* set by the voice step */;
+  prompt?: string /* AI video prompt (hook + cinema scenes) */;
+  clip?: string /* set by scripts/merge_clips.mjs, e.g. clips/scene-0.mp4 */;
+  clipSec?: number;
+};
 
 export type HookScene = Base & {type: 'hook'; kicker: string; headline: string; highlight: string};
 export type GlobeScene = Base & {type: 'globe'; lat: number; lon: number; place: string; sub: string};
@@ -22,6 +29,8 @@ export type LegacyScene = Base & {
   title: string;
   items: {icon: IconName; then: string; now: string}[];
 };
+// AI cinematic footage scene (label = short place/year tag, e.g. "Baghdad · 1206")
+export type CinemaSceneT = Base & {type: 'cinema'; label?: string};
 export type OutroScene = Base & {type: 'outro'; name: string; years: string; cta: string};
 
 export type Scene =
@@ -31,7 +40,8 @@ export type Scene =
   | IconGridScene
   | MachineScene
   | LegacyScene
-  | OutroScene;
+  | OutroScene
+  | CinemaSceneT;
 
 export type IconName = 'gear' | 'clock' | 'drum' | 'engine' | 'robot' | 'book' | 'drop' | 'bulb';
 

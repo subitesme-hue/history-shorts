@@ -4,14 +4,16 @@ raw = raw.replace(/^```(json)?/i, '').replace(/```$/, '').trim();
 let p;
 try { p = JSON.parse(raw); } catch (e) { throw new Error('Brain did not return valid JSON: ' + raw.slice(0, 300)); }
 
-const TYPES = ['hook','globe','counter','iconGrid','machine','legacy','outro'];
+const TYPES = ['hook','cinema','globe','counter','iconGrid','machine','legacy','outro'];
+const ANIM = ['globe','counter','iconGrid','machine','legacy'];
 const ICONS = ['gear','clock','drum','engine','robot','book','drop','bulb'];
 const row = $('Pick Innovator').first().json;
 
 // Accept "Hook", "icon_grid", "Icon Grid", "map" etc. and map them to the template's names.
 const ALIAS = { hook:'hook', globe:'globe', map:'globe', location:'globe', counter:'counter', year:'counter',
   icongrid:'iconGrid', grid:'iconGrid', machine:'machine', mechanism:'machine', diagram:'machine',
-  legacy:'legacy', thennow:'legacy', outro:'outro', ending:'outro', closing:'outro' };
+  legacy:'legacy', thennow:'legacy', outro:'outro', ending:'outro', closing:'outro',
+  cinema:'cinema', cinematic:'cinema', footage:'cinema', broll:'cinema', video:'cinema', aiclip:'cinema', shot:'cinema' };
 const scenesRaw = Array.isArray(p.scenes) ? p.scenes : (Array.isArray(p.video?.scenes) ? p.video.scenes : []);
 
 // Work out each scene's type: from a type-like field if present, otherwise from the fields the scene contains.
@@ -20,6 +22,7 @@ const inferType = (s) => {
   const named = norm(s.type ?? s.scene_type ?? s.sceneType ?? s.kind ?? s.template ?? s.layout ?? s.scene);
   if (named) return named;
   if ('headline' in s || 'highlight' in s || 'kicker' in s) return 'hook';
+  if ('prompt' in s && !('lat' in s) && !Array.isArray(s.steps) && !Array.isArray(s.items)) return 'cinema';
   if ('lat' in s || 'lon' in s || 'latitude' in s || 'place' in s) return 'globe';
   if (Array.isArray(s.steps)) return 'machine';
   if (Array.isArray(s.items)) return 'legacy';
@@ -61,6 +64,24 @@ if (!hookScene) {
 }
 if (!outroScene) outroScene = { type: 'outro', durationSec: 4.5, name: row.name, years: row.era || '',
                       cta: 'Follow for more forgotten innovators', narration: row.name + '. Follow for more forgotten innovators.' };
+// AI footage budget: up to 4 cinema scenes; animation limited to 2 scenes (+ the short outro) = roughly 10-25 s.
+const cleanPrompt = (x) => String(x || '').replace(/\s+/g, ' ').trim().slice(0, 600);
+let nCinema = 0, nAnim = 0;
+scenes = scenes.filter(s => {
+  if (s.type === 'cinema') { s.prompt = cleanPrompt(s.prompt); return s.prompt.length > 20 && ++nCinema <= 4; }
+  if (ANIM.includes(s.type)) return ++nAnim <= 2;
+  return false;
+});
+const animWords = scenes.filter(s => ANIM.includes(s.type)).reduce((a, s) => a + String(s.narration).split(/\s+/).length, 0);
+if (animWords > 50 && scenes.filter(s => ANIM.includes(s.type)).length > 1) {
+  // too long on animation: drop the wordier animated scene
+  const longest = scenes.filter(s => ANIM.includes(s.type)).sort((a, b) => b.narration.length - a.narration.length)[0];
+  scenes = scenes.filter(s => s !== longest);
+}
+hookScene.prompt = cleanPrompt(hookScene.prompt) || (scenes.find(s => s.type === 'cinema') || {}).prompt ||
+  `A dim workshop from the ${row.era || 'past'} in ${row.country || 'the old world'}, an inventor seen from behind working on ${row.invention || 'an early machine'}, warm lamp light, slow push-in.`;
+for (const s of scenes) if (s.type === 'cinema') s.label = String(s.label || '').trim().slice(0, 32);
+if (!scenes.some(s => s.type === 'cinema')) throw new Error('Brain returned no cinema scenes with a prompt. Types: ' + JSON.stringify(receivedTypes));
 scenes = [hookScene, ...scenes, outroScene];
 if (scenes.length < 4) throw new Error('Brain returned too few usable scenes (each needs narration). Scene keys: ' + JSON.stringify(receivedTypes) + ' | Top-level keys: ' + JSON.stringify(Object.keys(p)));
 
