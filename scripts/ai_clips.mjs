@@ -1,7 +1,8 @@
 // AI cinematic clips for every scene that has a "prompt" (hook + cinema scenes).
-// Generator: Seedance 1.5 Pro on KIE.AI — the same API your n8n "TI Video Factory v5" workflow already uses.
+// Generator: Seedance 2.0 Mini on KIE.AI (replaced Seedance 1.5 Pro, retired 21 Oct 2026 04:00 UTC).
+// Spec verified at docs.kie.ai/market/bytedance/seedance-2-mini: resolution 480p|720p only, duration 4-15, no fixed_lens.
 //   Submit: POST https://api.kie.ai/api/v1/jobs/createTask
-//           {model:"bytedance/seedance-1.5-pro", input:{prompt, aspect_ratio, resolution, duration, fixed_lens, generate_audio}}
+//           {model:"bytedance/seedance-2-mini", input:{prompt, aspect_ratio, resolution, duration, generate_audio}}
 //           -> data.taskId
 //   Poll:   GET  https://api.kie.ai/api/v1/jobs/recordInfo?taskId=...
 //           -> data.state ("success" | "fail" | still working), data.resultJson (JSON string) -> resultUrls[0]
@@ -12,7 +13,7 @@
 // Run it in the background while the voice is made; scripts/merge_clips.mjs copies the manifest into the props.
 //
 // Env: KIE_API_KEY (required, GitHub secret). Optional repo variables:
-//   SEEDANCE_MODEL (default bytedance/seedance-1.5-pro), SEEDANCE_RESOLUTION (720p), SEEDANCE_DURATION (8),
+//   SEEDANCE_MODEL (default bytedance/seedance-2-mini), SEEDANCE_RESOLUTION (720p), SEEDANCE_DURATION (8),
 //   AI_CLIPS_MAX (5), AI_CLIPS_TIMEOUT_MIN (14)
 
 import fs from 'node:fs';
@@ -22,9 +23,14 @@ const propsPath = process.argv[2] ?? 'props.json';
 const OUT_DIR = 'public/clips';
 const MANIFEST = path.join(OUT_DIR, 'manifest.json');
 const KEY = process.env.KIE_API_KEY;
-const MODEL = process.env.SEEDANCE_MODEL || 'bytedance/seedance-1.5-pro';
-const RES = process.env.SEEDANCE_RESOLUTION || '720p';
-const DURATION = Number(process.env.SEEDANCE_DURATION || 8);
+const NEW_MODEL = 'bytedance/seedance-2-mini';
+// A leftover SEEDANCE_MODEL repo variable pointing at the retired 1.5 Pro is upgraded automatically.
+const envModel = String(process.env.SEEDANCE_MODEL || '').trim();
+const MODEL = !envModel || /seedance-1\.5/i.test(envModel) ? NEW_MODEL : envModel;
+// 2.0 Mini accepts only 480p or 720p; anything else falls back to 720p.
+const RES = ['480p', '720p'].includes(process.env.SEEDANCE_RESOLUTION) ? process.env.SEEDANCE_RESOLUTION : '720p';
+// 2.0 Mini accepts 4-15 seconds.
+const DURATION = Math.min(15, Math.max(4, Math.round(Number(process.env.SEEDANCE_DURATION || 8))));
 const MAX = Number(process.env.AI_CLIPS_MAX || 5);
 const TIMEOUT_MS = Number(process.env.AI_CLIPS_TIMEOUT_MIN || 14) * 60000;
 const BASE = 'https://api.kie.ai/api/v1/jobs';
@@ -82,7 +88,6 @@ const submit = async (job) => {
       aspect_ratio: '9:16',
       resolution: RES,
       duration: DURATION,
-      fixed_lens: false,
       generate_audio: false,
     },
   };

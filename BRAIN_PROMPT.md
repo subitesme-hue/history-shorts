@@ -54,6 +54,6 @@ OUTPUT SHAPE
 ---
 
 Notes
-- `prompt` on hook/cinema scenes is sent to Seedance 1.5 Pro (KIE.AI) by `scripts/ai_clips.mjs` on GitHub Actions; the clip is placed behind that scene. If a clip fails, the scene shows an animated title card instead.
+- `prompt` on hook/cinema scenes is sent to Seedance 2.0 Mini (KIE.AI) by `scripts/ai_clips.mjs` on GitHub Actions; the clip is placed behind that scene. If a clip fails, the scene shows an animated title card instead.
 - Build Props keeps at most 2 animated scenes (+ outro) and at most 4 cinema scenes, so animation stays in the 10-25 s range.
 - Account IDs and the tai.news link are added by Build Props, not by the Brain.
