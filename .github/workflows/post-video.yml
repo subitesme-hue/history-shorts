@@ -1,0 +1,44 @@
+name: Post a ready-made video (one-off, optional schedule)
+
+# Posts an already rendered MP4 (kept on the oneoff-videos branch) through PostEverywhere.
+# Leave scheduled_for blank to post now, or give an ISO time in UTC, e.g. 2026-10-20T17:30:00Z (= 9:30 pm Dubai).
+on:
+  workflow_dispatch:
+    inputs:
+      video:
+        description: 'Path of the MP4 on the oneoff-videos branch, e.g. al-jazari.mp4'
+        required: true
+      post:
+        description: 'JSON of the "post" block (content, account_ids, platform_content, x)'
+        required: true
+      scheduled_for:
+        description: 'UTC time to publish (ISO 8601). Blank = now'
+        required: false
+        default: ''
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Get the video
+        env:
+          VIDEO: ${{ github.event.inputs.video }}
+        run: |
+          git fetch -q --depth 1 origin oneoff-videos
+          mkdir -p out
+          git show "origin/oneoff-videos:$VIDEO" > out/video.mp4
+          ls -la out/video.mp4
+      - name: Post via PostEverywhere
+        env:
+          PE_BASE_URL: ${{ vars.PE_BASE_URL }}
+          PE_API_KEY: ${{ secrets.PE_API_KEY }}
+          SCHEDULED_FOR: ${{ github.event.inputs.scheduled_for }}
+          POST: ${{ github.event.inputs.post }}
+        run: |
+          node -e 'const p=JSON.parse(process.env.POST); require("fs").writeFileSync("oneoff-props.json", JSON.stringify({post:p}))'
+          node scripts/post.mjs oneoff-props.json

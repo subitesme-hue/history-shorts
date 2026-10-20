@@ -14,7 +14,13 @@ if (!props.post) { console.log('No "post" block in props -> skipping posting.');
 if (!KEY) throw new Error('Add the PE_API_KEY secret in GitHub (Settings → Secrets and variables → Actions) to post.');
 
 const auth = {Authorization: `Bearer ${KEY}`};
-const bytes = fs.readFileSync('out/video.mp4');
+const SCHEDULED_FOR = (process.env.SCHEDULED_FOR || props.post.scheduled_for || '').trim();
+if (SCHEDULED_FOR) {
+  if (isNaN(Date.parse(SCHEDULED_FOR))) throw new Error('SCHEDULED_FOR is not a valid ISO date: ' + SCHEDULED_FOR);
+  if (Date.parse(SCHEDULED_FOR) < Date.now() + 120000) throw new Error('SCHEDULED_FOR must be at least 2 minutes in the future: ' + SCHEDULED_FOR);
+  console.log('Scheduling for', SCHEDULED_FOR);
+}
+const bytes = fs.readFileSync(process.env.VIDEO_FILE || 'out/video.mp4');
 const call = async (url, opts) => {
   const r = await fetch(url, opts);
   const t = await r.text();
@@ -42,7 +48,8 @@ const publish = async (accountIds, content, platformContent) => {
       account_ids: accountIds,
       content,
       platform_content: platformContent ?? {},
-      publish_now: props.post.publish_now ?? true,
+      // Scheduled post: PostEverywhere "scheduled_for" (ISO 8601 UTC). Without it the post goes out now.
+      ...(SCHEDULED_FOR ? {scheduled_for: SCHEDULED_FOR} : {publish_now: props.post.publish_now ?? true}),
     }),
   });
 };
