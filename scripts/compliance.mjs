@@ -1,9 +1,10 @@
 // YouTube compliance gate (runs after render, before posting). Fixes what it safely can, then blocks the post
 // if a hard rule still fails.  node scripts/compliance.mjs <props.json> <history|future> [video.mp4]
 //
-// Fixes:  adds the AI-disclosure line to the YouTube description when the video contains AI footage;
-//         sets the YouTube disclosure field if repo variable YT_SYNTHETIC_FIELD names it (e.g. once PostEverywhere
-//         confirms the exact key) — left unset until confirmed, never guessed.
+// Fixes:  moves the YouTube fields into platform_content.youtube.settings, the only place PostEverywhere reads them
+//         (verified in @posteverywhere/sdk 1.6.1 YouTubeSettings + @posteverywhere/mcp 1.14.0 changelog, Oct 20 2026);
+//         sets settings.containsSyntheticMedia (YouTube's "altered or synthetic content" disclosure) from whether
+//         the video has AI footage, and adds a matching line to the description.
 // Blocks: missing YouTube block/title, title > 100 chars, "made for kids" not false, AI footage without disclosure,
 //         same title or topic as an earlier Short, too similar to any of the last 3 Shorts, bad video length.
 // Report: out/compliance.json (uploaded as an Actions artifact).
@@ -21,35 +22,42 @@ const fixes = [];
 const yt = youtubeOf(props);
 const aiScenes = (props.scenes || []).filter((s) => s.clip).length;
 
-// ---- 1. YouTube fields
+// ---- 1. YouTube fields -> platform_content.youtube.settings (title, description, tags, privacyStatus, madeForKids,
+//         categoryId, containsSyntheticMedia). The old flat keys (title, privacy, made_for_kids, is_short ...) are removed.
 if (!yt) errors.push('No post.platform_content.youtube block, so YouTube would get no title or settings.');
 else {
-  const title = String(yt.title || yt.settings?.title || '').trim();
-  if (!title) errors.push('YouTube title is empty.');
-  if (title.length > 100) errors.push(`YouTube title is ${title.length} characters (limit 100).`);
-  const kids = yt.made_for_kids ?? yt.settings?.madeForKids;
-  if (kids !== false) errors.push('"Made for kids" is not explicitly false.');
+  const st = {...(yt.settings || {})};
+  const take = (...vals) => vals.find((v) => v !== undefined && v !== null && v !== '');
+  st.title = String(take(st.title, yt.title) || '').trim();
+  st.description = String(take(st.description, yt.description, yt.content) || '');
+  const tags = take(st.tags, yt.tags);
+  if (tags) st.tags = (Array.isArray(tags) ? tags : String(tags).split(',')).map((t) => String(t).trim()).filter(Boolean).slice(0, 15);
+  st.privacyStatus = take(st.privacyStatus, yt.privacy, 'public');
+  st.madeForKids = take(st.madeForKids, yt.made_for_kids, false);
+  st.categoryId = String(take(st.categoryId, process.env.YT_CATEGORY_ID, '28')); // 28 = Science & Technology
+  st.containsSyntheticMedia = aiScenes > 0;
+  for (const k of ['title', 'description', 'tags', 'privacy', 'made_for_kids', 'is_short']) delete yt[k];
+  yt.content = st.description; // PostEverywhere: the YouTube description goes in content
+  yt.settings = st;
+  fixes.push(`YouTube settings set: title, description, ${st.tags ? 'tags, ' : ''}privacyStatus=${st.privacyStatus}, madeForKids=${st.madeForKids}, categoryId=${st.categoryId}, containsSyntheticMedia=${st.containsSyntheticMedia}.`);
 
-  // ---- 2. AI disclosure
+  if (!st.title) errors.push('YouTube title is empty.');
+  if (st.title.length > 100) errors.push(`YouTube title is ${st.title.length} characters (limit 100).`);
+  if (st.madeForKids !== false) errors.push('"Made for kids" is not false.');
+  if (!['public', 'unlisted', 'private'].includes(st.privacyStatus)) errors.push(`Invalid privacyStatus "${st.privacyStatus}".`);
+
+  // ---- 2. AI disclosure: the API flag above + a plain line in the description for viewers
   if (aiScenes > 0) {
     const line = DISCLOSURE[series];
-    const desc = String(yt.description || '');
-    if (!desc.includes(line)) {
-      // Put it above the "Visit tai.news" line / hashtags if present, else at the end.
-      const at = desc.search(/\n\s*(🔗|#)/);
-      yt.description = at === -1 ? `${desc.trim()}\n\n${line}` : `${desc.slice(0, at).trim()}\n\n${line}${desc.slice(at)}`;
-      fixes.push(`Added AI disclosure line to the YouTube description (${aiScenes} AI scene(s)).`);
+    if (!st.description.includes(line)) {
+      const at = st.description.search(/\n\s*(🔗|#)/);
+      st.description = at === -1 ? `${st.description.trim()}\n\n${line}` : `${st.description.slice(0, at).trim()}\n\n${line}${st.description.slice(at)}`;
+      yt.content = st.description;
+      fixes.push(`Added AI disclosure line to the description (${aiScenes} AI scene(s)).`);
     }
-    const field = String(process.env.YT_SYNTHETIC_FIELD || '').trim();
-    if (field) {
-      yt.settings = {...(yt.settings || {}), [field]: true};
-      fixes.push(`Set youtube.settings.${field} = true.`);
-    } else {
-      warnings.push('YouTube "altered content" flag not sent by API (repo variable YT_SYNTHETIC_FIELD not set yet); relying on the description disclosure.');
-    }
-    if (!String(yt.description).includes(line)) errors.push('AI footage present but the disclosure line is missing.');
+    if (st.containsSyntheticMedia !== true || !st.description.includes(line)) errors.push('AI footage present but disclosure is incomplete.');
   }
-  if (String(yt.description || '').length > 5000) errors.push('YouTube description is over 5000 characters.');
+  if (st.description.length > 5000) errors.push('YouTube description is over 5000 characters.');
 }
 if (props.post?.x?.content && props.post.x.content.length > 120) errors.push(`X caption is ${props.post.x.content.length} characters (limit 120).`);
 

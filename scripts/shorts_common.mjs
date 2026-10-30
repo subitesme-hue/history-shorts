@@ -59,7 +59,7 @@ export const signatureOf = (props, series) => {
   return {
     series,
     topic: topicOf(props, series),
-    title: String(youtubeOf(props)?.title || '').trim(),
+    title: String(youtubeOf(props)?.settings?.title || youtubeOf(props)?.title || '').trim(),
     voice: props.compliance?.voice || 'am_michael',
     music: props.musicFile || 'auto',
     cta: String(outro.cta || ''),

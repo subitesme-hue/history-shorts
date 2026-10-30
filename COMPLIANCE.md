@@ -15,11 +15,10 @@ stay in the run's Artifacts.
 
 1. **Secret `ANTHROPIC_API_KEY`**: your Claude API key from console.anthropic.com. Until it's added, the review step is
    skipped with a warning and posting carries on.
-2. **Variable `YT_SYNTHETIC_FIELD`**: leave it unset until PostEverywhere confirms the exact field name for
-   YouTube's "altered or synthetic content" setting inside `platform_content.youtube.settings`. Then set it to that
-   name and the gate will send `true` for every Short with AI footage. Until then, the description line is the
-   disclosure.
-3. Optional: `REVIEW_MODEL` (default `claude-sonnet-5-5`), and `VARIETY=off` to stop the rotation. The gate still
+2. Nothing else is needed for the AI label: the gate sends PostEverywhere's `platform_content.youtube.settings.containsSyntheticMedia`
+   (true when the Short has AI footage), the field documented in `@posteverywhere/sdk` 1.6.1 and the MCP 1.14.0 changelog.
+   It also moves title, description, tags, privacy and made-for-kids into `settings`, the only place PostEverywhere reads them.
+3. Optional: `YT_CATEGORY_ID` (default `28` Science & Technology; `27` = Education), `REVIEW_MODEL` (default `claude-sonnet-5-5`), and `VARIETY=off` to stop the rotation. The gate still
    checks variety.
 
 ## Reading a blocked run

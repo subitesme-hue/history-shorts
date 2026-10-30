@@ -123,7 +123,7 @@ jobs:
       # ---------- YouTube compliance: gate + independent reviewer. Either failing stops the post. ----------
       - name: Compliance gate (AI disclosure, no repeats, variety, YouTube fields)
         env:
-          YT_SYNTHETIC_FIELD: ${{ vars.YT_SYNTHETIC_FIELD }}
+          YT_CATEGORY_ID: ${{ vars.YT_CATEGORY_ID }}
         run: node scripts/compliance.mjs props.json history out/video.mp4
 
       - name: Independent review (Claude)

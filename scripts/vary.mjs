@@ -17,7 +17,7 @@ const recent = (key, n) => past.slice(-n).map((h) => h[key]);
 
 // Stable per topic, so a re-run of the same Short makes the same choices.
 let seed = 0;
-for (const ch of topicOf(props, series) + (props.post?.platform_content?.youtube?.title || '')) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+for (const ch of topicOf(props, series) + (props.post?.platform_content?.youtube?.settings?.title || props.post?.platform_content?.youtube?.title || '')) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
 const pick = (pool, avoid) => {
   const fresh = pool.filter((x) => !avoid.includes(x));
   const from = fresh.length ? fresh : pool;

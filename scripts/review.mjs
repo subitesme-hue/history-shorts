@@ -45,14 +45,15 @@ BLOCK (verdict "fail") only for real problems:
 - Gore, weapons in use, sexual content, shock or emotionally manipulative framing, or anything "off-putting".
 - Garbled, misspelled or nonsense text visible inside a frame, or broken/blank frames.
 - Title or hook promises something the video doesn't deliver (clickbait).
-- AI footage present but the YouTube description lacks an AI-generated disclosure line.
+- AI footage present but the YouTube AI disclosure flag is false or the description lacks an AI-generated disclosure line.
 Everything else (style, pacing, small mismatches between a frame and a sentence) goes in "warnings" and does not block.
 
 Reply with ONLY this JSON: {"verdict":"pass"|"fail","blocking_issues":["..."],"warnings":["..."],"summary":"one sentence"}
 
-TITLE: ${yt.title || ''}
+TITLE: ${yt.settings?.title || yt.title || ''}
 DESCRIPTION:
-${yt.description || ''}
+${yt.settings?.description || yt.description || ''}
+YOUTUBE AI DISCLOSURE FLAG (containsSyntheticMedia): ${yt.settings?.containsSyntheticMedia === true}
 SCENES (in order, narration in quotes):
 ${scenes}
 FRAMES: ${N} stills at evenly spaced times across the ${dur.toFixed(1)} s video follow.`;
