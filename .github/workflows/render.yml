@@ -41,6 +41,13 @@ jobs:
           PROPS: ${{ github.event.inputs.props }}
         run: printf '%s' "$PROPS" > props.json
 
+      # ---------- Variety: voice / music / end card not used by the last few Shorts (YouTube repetitive-content rule) ----------
+      - name: Vary voice, music and end card
+        env:
+          VARIETY: ${{ vars.VARIETY }}
+          INPUT_VOICE: ${{ github.event.inputs.voice }}
+        run: node scripts/vary.mjs props.json history
+
       # ---------- AI cinematic clips (Seedance via KIE.AI), generated while the voice is made ----------
       - name: Start AI clips (background)
         env:
@@ -78,7 +85,8 @@ jobs:
       - name: Voiceover + word timings (Kokoro)
         if: ${{ vars.VOICE_ENGINE != 'elevenlabs' }}
         env:
-          KOKORO_VOICE: ${{ github.event.inputs.voice }}
+          KOKORO_VOICE: ${{ env.VOICE_PICK || github.event.inputs.voice }}
+          KOKORO_LANG: ${{ env.LANG_PICK || 'a' }}
         run: python scripts/voice_kokoro.py props.json
 
       - name: Voiceover + word timings (ElevenLabs)
@@ -112,6 +120,29 @@ jobs:
           path: out/video.mp4
           retention-days: 7
 
+      # ---------- YouTube compliance: gate + independent reviewer. Either failing stops the post. ----------
+      - name: Compliance gate (AI disclosure, no repeats, variety, YouTube fields)
+        env:
+          YT_SYNTHETIC_FIELD: ${{ vars.YT_SYNTHETIC_FIELD }}
+        run: node scripts/compliance.mjs props.json history out/video.mp4
+
+      - name: Independent review (Claude)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          REVIEW_MODEL: ${{ vars.REVIEW_MODEL }}
+        run: node scripts/review.mjs props.json out/video.mp4
+
+      - name: Keep compliance + review reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-report
+          path: |
+            out/compliance.json
+            out/review.json
+          if-no-files-found: ignore
+          retention-days: 30
+
       # ---------- Post ----------
       - name: Post via PostEverywhere
         if: ${{ github.event.inputs.post == 'true' }}
@@ -119,6 +150,16 @@ jobs:
           PE_BASE_URL: ${{ vars.PE_BASE_URL }}
           PE_API_KEY: ${{ secrets.PE_API_KEY }}
         run: node scripts/post.mjs props.json
+
+      - name: Record in Shorts history (used by the next run's variety + repeat checks)
+        if: ${{ github.event.inputs.post == 'true' }}
+        run: |
+          node scripts/record.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add compliance/history.json
+          git commit -qm "Shorts history: history $(date -u +%F)"
+          for i in 1 2 3; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep 5; done
 
       - name: Save preview to history-preview branch (optional)
         if: ${{ github.event.inputs.preview == 'true' }}

@@ -1,0 +1,30 @@
+[
+  {
+    "series": "history",
+    "date": "2026-10-27",
+    "seed": true,
+    "note": "Seed: the look every Forgotten Innovators Short had before the compliance gate (fixed voice, default CTA, automatic music).",
+    "topic": "",
+    "title": "",
+    "voice": "am_michael",
+    "music": "auto",
+    "cta": "Follow for more forgotten innovators",
+    "structure": "hook>cinema>anim>cinema>anim>cinema>outro",
+    "kicker": "",
+    "ai_clips": 3
+  },
+  {
+    "series": "future",
+    "date": "2026-10-28",
+    "seed": true,
+    "note": "Seed: the look every Future Shift Short had before the compliance gate.",
+    "topic": "",
+    "title": "",
+    "voice": "am_michael",
+    "music": "music/future-1.mp3",
+    "cta": "Follow for more future shifts",
+    "structure": "hook>cinema>anim>cinema>anim>cinema>outro",
+    "kicker": "",
+    "ai_clips": 3
+  }
+]
