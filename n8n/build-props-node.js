@@ -80,7 +80,18 @@ if (animWords > 50 && scenes.filter(s => ANIM.includes(s.type)).length > 1) {
 }
 hookScene.prompt = cleanPrompt(hookScene.prompt) || (scenes.find(s => s.type === 'cinema') || {}).prompt ||
   `A dim workshop from the ${row.era || 'past'} in ${row.country || 'the old world'}, an inventor seen from behind working on ${row.invention || 'an early machine'}, warm lamp light, slow push-in.`;
-for (const s of scenes) if (s.type === 'cinema') s.label = String(s.label || '').trim().slice(0, 32);
+// Labels longer than 32 characters are cut back to the last whole word (and any trailing "·" is dropped), never mid phrase.
+const fitLabel = (t) => {
+  t = String(t || '').trim();
+  if (t.length <= 32) return t;
+  const cut = t.slice(0, 33);
+  // Prefer dropping whole "·" parts ("Breakthrough · 5th Century" -> "Breakthrough"), else whole words.
+  const dot = cut.lastIndexOf('·');
+  if (dot >= 12) return cut.slice(0, dot).trim();
+  const sp = cut.lastIndexOf(' ');
+  return (sp > 0 ? cut.slice(0, sp) : cut.slice(0, 32)).replace(/[\s·|,:]+$/, '').trim();
+};
+for (const s of scenes) if (s.type === 'cinema') s.label = fitLabel(s.label);
 if (!scenes.some(s => s.type === 'cinema')) throw new Error('Brain returned no cinema scenes with a prompt. Types: ' + JSON.stringify(receivedTypes));
 scenes = [hookScene, ...scenes, outroScene];
 if (scenes.length < 4) throw new Error('Brain returned too few usable scenes (each needs narration). Scene keys: ' + JSON.stringify(receivedTypes) + ' | Top-level keys: ' + JSON.stringify(Object.keys(p)));

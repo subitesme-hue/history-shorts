@@ -131,7 +131,16 @@ const download = async (job, url) => {
 };
 
 const started = Date.now();
-await Promise.all(jobs.map(async (job) => (job.id = await submit(job))));
+// KIE_REUSE_TASKS ({"sceneIndex":"taskId"}): fetch clips already made by an earlier run (status lookup only, no new generation).
+let reuse = null;
+try {
+  reuse = process.env.KIE_REUSE_TASKS ? JSON.parse(process.env.KIE_REUSE_TASKS) : null;
+} catch {
+  console.log('KIE_REUSE_TASKS is not valid JSON -> no clips.');
+  reuse = {};
+}
+if (reuse) for (const job of jobs) (job.id = reuse[job.i] || null), job.id && console.log(`scene ${job.i}: reusing ${job.id}`);
+else await Promise.all(jobs.map(async (job) => (job.id = await submit(job))));
 let pending = jobs.filter((j) => j.id);
 
 while (pending.length && Date.now() - started < TIMEOUT_MS) {

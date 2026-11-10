@@ -31,3 +31,15 @@ let anim = 0;
 let ai = 0;
 for (const s of props.scenes) (s.clip ? (ai += s.durationSec) : s.type === 'cinema' ? 0 : (anim += s.durationSec));
 console.log(`Clips merged: ${n}. AI footage ≈ ${ai.toFixed(1)}s, animation ≈ ${anim.toFixed(1)}s.`);
+
+// When reusing earlier clips, stop here (nothing gets posted) if any of them could not be fetched.
+if (process.env.KIE_REUSE_TASKS) {
+  let want = 0;
+  try {
+    want = Object.keys(JSON.parse(process.env.KIE_REUSE_TASKS)).length;
+  } catch {}
+  if (n < want) {
+    console.log(`::error::Only ${n} of ${want} reused clips could be fetched. Stopping so no video goes out without its footage.`);
+    process.exit(1);
+  }
+}
